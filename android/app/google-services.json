@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "204238056386",
+    "project_id": "prestamos-b6893",
+    "storage_bucket": "prestamos-b6893.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:204238056386:android:a05f9db597d12b6ea5445b",
+        "android_client_info": {
+          "package_name": "com.pedrisbel.pres"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAe4u6qeRuHpcHUkUBw0st2c3HJZLs_rFQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:204238056386:android:48ac0b5aeb6916b4a5445b",
+        "android_client_info": {
+          "package_name": "com.pedrisbel.prestamos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAe4u6qeRuHpcHUkUBw0st2c3HJZLs_rFQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
