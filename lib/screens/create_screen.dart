@@ -21,11 +21,14 @@ class SecondScreenState extends State<SecondScreen> {
   final TextEditingController clientNameController = TextEditingController();
   final TextEditingController interestRateController = TextEditingController();
 
-  String? paymentFrequency;
+  String paymentFrequency = 'Mensual';
   double? amountToPayPerInstallment;
   double? totalToPay;
   double? interesRate;
   int numberOfInstallments = 1; // Cambiado a 1 para evitar división por cero
+  String? amountError;
+  String? interestError;
+  String? installmentsError;
 
   @override
   void initState() {
@@ -41,6 +44,35 @@ class SecondScreenState extends State<SecondScreen> {
     interestRateController.dispose();
     super.dispose();
   }
+
+  void calculateInstallment() {
+    final double amount = double.tryParse(_amountController.text) ?? 0;
+    final double interest = double.tryParse(interestRateController.text) ?? 1;
+
+    if (amount > 0 && interest >= 0 && numberOfInstallments > 1) {
+      setState(() {
+        totalToPay = LoanCalculator.calculateTotalToPay(amount, interest);
+        amountToPayPerInstallment = LoanCalculator.calculateAmountPerInstallment(totalToPay!, numberOfInstallments);
+      });
+    }
+  }
+
+  // Método para mostrar SnackBar
+  void _showSnackBar(String message) {
+      SnackBarTop.showTopSnackBar(context, message);
+    }
+
+  // Método para navegar a la pantalla de detalles del préstamo
+  void _navigateToLoanDetails(String loanId) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ViewLoanScreen(
+            loanId: loanId, // Pasa el ID del préstamo aquí
+          ),
+        ),
+      );
+    }
 
   String? _validateAmount(String? value) {
     final amount = double.tryParse(value ?? '');
@@ -66,16 +98,8 @@ class SecondScreenState extends State<SecondScreen> {
     return null;
   }
 
-  void calculateInstallment() {
-    final double amount = double.tryParse(_amountController.text) ?? 0;
-    final double interest = double.tryParse(interestRateController.text) ?? 1;
-
-    if (amount > 0 && interest >= 0 && numberOfInstallments > 1) {
-      setState(() {
-        totalToPay = LoanCalculator.calculateTotalToPay(amount, interest);
-        amountToPayPerInstallment = LoanCalculator.calculateAmountPerInstallment(totalToPay!, numberOfInstallments);
-      });
-    }
+  void cancelLoan() {
+    Navigator.pop(context);
   }
 
   void confirmLoan() async {
@@ -83,17 +107,14 @@ class SecondScreenState extends State<SecondScreen> {
     final interestError = _validateInterestRate(interestRateController.text);
     final installmentsError = _validateInstallments(numberOfInstallments.toString());
 
-    if (amountError != null) {
-      SnackBarTop.showTopSnackBar(context, amountError);
-      return;
-    }
-    if (interestError != null) {
-      SnackBarTop.showTopSnackBar(context, interestError);
-      return;
-    }
-    if (installmentsError != null) {
-      SnackBarTop.showTopSnackBar(context, installmentsError);
-      return;
+    setState(() {
+      this.amountError = amountError;
+      this.interestError = interestError;
+      this.installmentsError = installmentsError;
+    });
+
+    if (amountError != null || interestError != null || installmentsError != null) {
+      return; // No continuar si hay errores
     }
 
     // Guardar el préstamo en Firestore
@@ -105,30 +126,19 @@ class SecondScreenState extends State<SecondScreen> {
         amount: double.parse(_amountController.text),
         interestRate: double.parse(interestRateController.text),
         numberOfInstallments: numberOfInstallments,
-        paymentFrequency: paymentFrequency ?? 'Mensual',
+        paymentFrequency: paymentFrequency,
         cuotasRestantes: numberOfInstallments,
         completado: false,
         renovado: false,
       );
 
-      SnackBarTop.showTopSnackBar(context, 'Préstamo creado con éxito');
+      _showSnackBar('Préstamo creado con éxito');
 
       // Navegar a la pantalla de detalles del préstamo
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ViewLoanScreen(
-            loanId: loanId, // Pasa el ID del préstamo aquí
-          ),
-        ),
-      );
+      _navigateToLoanDetails(loanId);
     } catch (e) {
-      SnackBarTop.showTopSnackBar(context, 'Error al crear el préstamo: $e');
+      _showSnackBar('Error al crear el préstamo: $e');
     }
-  }
-
-  void cancelLoan() {
-    Navigator.pop(context);
   }
 
   String formatCurrency(double? value) {
@@ -170,9 +180,16 @@ class SecondScreenState extends State<SecondScreen> {
                     const SizedBox(height: 16),
                     TextField(
                       controller: _amountController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Monto a prestar',
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
+                        errorText: amountError, // Muestra el mensaje de error aquí
+                        errorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
+                        focusedErrorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
                       ),
                       keyboardType: TextInputType.number,
                       inputFormatters: <TextInputFormatter>[
@@ -180,14 +197,24 @@ class SecondScreenState extends State<SecondScreen> {
                       ],
                       onChanged: (value) {
                         calculateInstallment();
+                        setState(() {
+                          amountError = _validateAmount(value);
+                        });
                       },
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: interestRateController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Tasa de Interés (%)',
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
+                        errorText: interestError, // Muestra el mensaje de error aquí
+                        errorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
+                        focusedErrorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
                       ),
                       keyboardType: TextInputType.number,
                       inputFormatters: <TextInputFormatter>[
@@ -195,6 +222,9 @@ class SecondScreenState extends State<SecondScreen> {
                       ],
                       onChanged: (value) {
                         calculateInstallment();
+                        setState(() {
+                          interestError = _validateInterestRate(value);
+                        });
                       },
                     ),
                     const SizedBox(height: 16),
@@ -219,19 +249,29 @@ class SecondScreenState extends State<SecondScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextField(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Número de Cuotas',
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
+                        errorText: installmentsError, // Muestra el mensaje de error aquí
+                        errorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
+                        focusedErrorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
                       ),
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
                         int? installments = int.tryParse(value);
-                        if (installments != null && installments > 1) {
-                          setState(() {
+                        setState(() {
+                          if (installments != null && installments > 1) {
                             numberOfInstallments = installments;
-                            calculateInstallment();
-                          });
-                        }
+                            installmentsError = null; // Limpiar error si es válido
+                          } else {
+                            installmentsError = _validateInstallments(value);
+                          }
+                        });
+                          calculateInstallment();
                       },
                     ),
                     const SizedBox(height: 16),
@@ -241,7 +281,7 @@ class SecondScreenState extends State<SecondScreen> {
                     ],
                     const SizedBox(height: 16),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton(
                           onPressed: confirmLoan,
@@ -251,7 +291,7 @@ class SecondScreenState extends State<SecondScreen> {
                           ),
                           child: const Text('Aceptar'),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 40),
                         ElevatedButton(
                           onPressed: cancelLoan,
                           style: ElevatedButton.styleFrom(
@@ -268,7 +308,7 @@ class SecondScreenState extends State<SecondScreen> {
             ),
           ),
         ),
-    )
+      ),
     );
   }
 }

@@ -20,8 +20,8 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   final List<Client> clients = [];
 
-  List<Client> filteredClients = []; // Nueva lista para almacenar los clientes filtrados
-  bool isSearching = false; // Estado para saber si estamos en modo búsqueda
+  List<Client> filteredClients = []; 
+  bool isSearching = false; 
   final TextEditingController searchController = TextEditingController();
   
   final TextEditingController clientNameController = TextEditingController();
@@ -36,9 +36,14 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    userId = _auth.currentUser ?.uid; // Obtener el UID del usuario actual
-    _loadClients(); // Cargar los clientes al iniciar la pantalla
+    userId = _auth.currentUser ?.uid; 
+    _loadClients(); 
   }
+
+  // Método para mostrar SnackBar
+    void _showSnackBar(String message) {
+      SnackBarTop.showTopSnackBar(context, message);
+    }
 
   Future<void> _loadClients() async {
     try {
@@ -62,12 +67,11 @@ class HomeScreenState extends State<HomeScreen> {
               data['identityCard'], 
             ));
           }
-          filteredClients = clients; // Inicializa la lista filtrada
+          filteredClients = clients;
         });
       }
     } catch (e) {
-      print("Error al cargar clientes: $e");
-      SnackBarTop.showTopSnackBar(context, 'Error al cargar clientes: $e');
+      _showSnackBar('Error al cargar clientes: $e');
     }
   }
 
@@ -75,12 +79,12 @@ class HomeScreenState extends State<HomeScreen> {
   void _filterClients(String query) {
     if (query.isEmpty) {
       setState(() {
-        isSearching = false; // Si no hay texto, no estamos buscando
-        filteredClients = clients; // Reiniciar la lista filtrada a la original
+        isSearching = false;
+        filteredClients = clients; 
       });
     } else {
       setState(() {
-        isSearching = true; // Estamos buscando
+        isSearching = true;
         filteredClients = clients.where((client) {
           return client.name.toLowerCase().contains(query.toLowerCase());
         }).toList();
@@ -95,7 +99,7 @@ class HomeScreenState extends State<HomeScreen> {
     phoneNumberController.dispose();
     emergencyContactNameController.dispose();
     emergencyContactPhoneController.dispose();
-    searchController.dispose(); // Asegúrate de limpiar el controlador de búsqueda
+    searchController.dispose(); 
     super.dispose();
   }
 
@@ -138,28 +142,30 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNumberField({
-    required TextEditingController controller,
-    required String hintText,
-    required String? Function(String?) validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      decoration: InputDecoration(
-          hintText: hintText,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.teal),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.teal, width: 2.0),
-          ),
-        ),
-      validator: validator,
-      keyboardType: TextInputType.number,
-    );
-  }
+  required TextEditingController controller,
+  required String hintText,
+  required String? Function(String?) validator,
+}) {
+  return TextFormField(
+    controller: controller,
+    inputFormatters: [
+      FilteringTextInputFormatter.allow(RegExp(r'[\d\s\+\-()]')), // Permitir números y caracteres especiales
+    ],
+    decoration: InputDecoration(
+      hintText: hintText,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.teal),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.teal, width: 2.0),
+      ),
+    ),
+    validator: validator,
+    keyboardType: TextInputType.text, // Cambiar a texto para permitir caracteres especiales
+  );
+}
 
 void addClient() {
   clientNameController.clear();
@@ -224,50 +230,56 @@ void addClient() {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () async {
-              if (_formKey.currentState?.validate() ?? false) {
-                String clientNameInput = clientNameController.text;
-                String phoneNumberInput = phoneNumberController.text;
-                String emergencyContactNameInput = emergencyContactNameController.text;
-                String emergencyContactPhoneInput = emergencyContactPhoneController.text;
-                String addressInput = addressController.text; 
-                String identityCardInput = identityCardController.text;
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center, 
+            children: [
+              TextButton(
+                onPressed: () async {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    String clientNameInput = clientNameController.text;
+                    String phoneNumberInput = phoneNumberController.text;
+                    String emergencyContactNameInput = emergencyContactNameController.text;
+                    String emergencyContactPhoneInput = emergencyContactPhoneController.text;
+                    String addressInput = addressController.text; 
+                    String identityCardInput = identityCardController.text;
 
-                if (!clients.any((client) => client.name == clientNameInput)) {
-                  await FirebaseFirestore.instance.collection('clients').add({
-                    'name': clientNameInput,
-                    'phone': phoneNumberInput,
-                    'emergencyContactName': emergencyContactNameInput,
-                    'emergencyContactPhone': emergencyContactPhoneInput,
-                    'address': addressInput, 
-                    'identityCard': identityCardInput,
-                    'userId': userId,
-                  });
-                  await _loadClients();
+                    if (!clients.any((client) => client.name == clientNameInput)) {
+                      await FirebaseFirestore.instance.collection('clients').add({
+                        'name': clientNameInput,
+                        'phone': phoneNumberInput,
+                        'emergencyContactName': emergencyContactNameInput,
+                        'emergencyContactPhone': emergencyContactPhoneInput,
+                        'address': addressInput, 
+                        'identityCard': identityCardInput,
+                        'userId': userId,
+                      });
+                      await _loadClients();
+                      Navigator.of(context).pop();
+                      _showSnackBar( 'Cliente $clientNameInput agregado');
+                    } else {
+                      _showSnackBar('El cliente ya existe');
+                    }
+                  }
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Aceptar'),
+              ),
+              const SizedBox(width: 40), 
+              TextButton(
+                onPressed: () {
                   Navigator.of(context).pop();
-                  SnackBarTop.showTopSnackBar(context, 'Cliente $clientNameInput agregado');
-                } else {
-                  SnackBarTop.showTopSnackBar(context, 'El cliente ya existe');
-                }
-              }
-            },
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.teal,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Crear'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Cancelar'),
-          ),
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Cancelar'),
+              ),
+            ],
+          )
         ],
       );
     },
@@ -295,13 +307,12 @@ void removeClient(String clientName) async {
       setState(() {
         clients.removeWhere((client) => client.name == clientName);
       });
-      SnackBarTop.showTopSnackBar(context, "Cliente '$clientName' eliminado");
+      _showSnackBar("Cliente '$clientName' eliminado");
     } else {
-      SnackBarTop.showTopSnackBar(context, 'Cliente no encontrado o no pertenece al usuario actual');
+      _showSnackBar('Cliente no encontrado o no pertenece al usuario actual');
     }
   } catch (e) {
-    print("Error al eliminar el cliente: $e");
-    SnackBarTop.showTopSnackBar(context, 'Error al eliminar el cliente');
+    _showSnackBar('Error al eliminar el cliente');
   }
 }
 
@@ -342,14 +353,15 @@ void removeClient(String clientName) async {
                     .collection('loan')
                     .where('clientName', isEqualTo: client.name)
                     .where('userId', isEqualTo: userId)
+                    .where('renovado', isEqualTo: false)
                     .get()
                     .then((querySnapshot) {
                       if (querySnapshot.docs.isNotEmpty) {
                         // Si ya existe un préstamo para este cliente
-                        SnackBarTop.showTopSnackBar(context, 'Ya existe un préstamo para ${client.name}');
+                        _showSnackBar('Ya existe un préstamo para ${client.name}');
                       } else {
                         // Si no existe un préstamo, navega a la pantalla de creación de préstamo
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => SecondScreen(clientName: client.name),
@@ -357,7 +369,7 @@ void removeClient(String clientName) async {
                         );
                       }
                     }).catchError((error) {
-                      SnackBarTop.showTopSnackBar(context, 'Error al buscar el préstamo: $error');
+                      _showSnackBar('Error al buscar el préstamo: $error');
                     });
               },
             ),
@@ -384,10 +396,10 @@ void removeClient(String clientName) async {
                           ),
                         );
                       } else {
-                        SnackBarTop.showTopSnackBar(context, 'No se encontró ningún préstamo para ${client.name}');
+                        _showSnackBar('No se encontró ningún préstamo para ${client.name}');
                       }
                     }).catchError((error) {
-                      SnackBarTop.showTopSnackBar(context, 'Error al buscar el préstamo: $error');
+                      _showSnackBar('Error al buscar el préstamo: $error');
                     });
               },
             ),
@@ -442,7 +454,7 @@ void removeClient(String clientName) async {
       await FirebaseAuth.instance.signOut();
       Navigator.of(context).pushReplacementNamed('/');
     } catch (e) {
-      print('Error al cerrar sesión: $e');
+      _showSnackBar('Error al cerrar sesión: $e');
     }
   }
 

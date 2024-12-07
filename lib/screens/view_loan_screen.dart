@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; 
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'create_screen.dart';
 import 'home_screen.dart';
-import '../utils/snack_bar_top.dart';
-import 'package:printing/printing.dart';
+import '/utils/snack_bar_top.dart';
 import 'package:intl/intl.dart';
-
+import '/screens/print_screen.dart';
 
 class ViewLoanScreen extends StatefulWidget {
   final String loanId;
@@ -39,7 +36,12 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
     _fetchLoanData(); // Cargar los datos del préstamo
   }
 
-Future<void> _fetchLoanData() async {
+  // Método para mostrar SnackBar
+  void _showSnackBar(String message) {
+      SnackBarTop.showTopSnackBar(context, message);
+    }
+
+  Future<void> _fetchLoanData() async {
   try {
     DocumentSnapshot doc = await FirebaseFirestore.instance.collection('loan').doc(widget.loanId).get();
     if (doc.exists) {
@@ -63,27 +65,25 @@ Future<void> _fetchLoanData() async {
         // }
       });
     } else {
-      SnackBarTop.showTopSnackBar(context, 'Préstamo no encontrado.');
+      _showSnackBar('Préstamo no encontrado.');
     }
   } catch (e) {
-    print("Error al obtener los datos del préstamo: $e");
-    SnackBarTop.showTopSnackBar(context, 'Error al cargar los datos del préstamo.');
+    _showSnackBar( 'Error al cargar los datos del préstamo.');
   }
 }
 
-Future<void> _updateCuotasPagadas(int cuotasPagadas) async {
+  Future<void> _updateCuotasPagadas(int cuotasPagadas) async {
   try {
     await FirebaseFirestore.instance.collection('loan').doc(widget.loanId).update({
       'cuotasPagadas': cuotasPagadas,
       'fechaUltimoPago': DateTime.now(),
     });
   } catch (e) {
-    print("Error al actualizar las cuotas pagadas: $e");
-    SnackBarTop.showTopSnackBar(context, 'Error al actualizar las cuotas pagadas.');
+    _showSnackBar('Error al actualizar las cuotas pagadas.');
   }
 }
 
-String formatFechaUltimoPago(DateTime? fecha) {
+  String formatFechaUltimoPago(DateTime? fecha) {
   if (fecha == null) {
     return 'No hay pagos realizados';
   }
@@ -91,7 +91,7 @@ String formatFechaUltimoPago(DateTime? fecha) {
   return DateFormat('yyyy-MM-dd').format(fecha);
 }
 
-void _confirmPayment() {
+  void _confirmPayment() {
   if (selectedCuota != null) {
     // Lógica para confirmar el pago
     _updateCuotasPagadas(selectedCuota!);
@@ -110,171 +110,42 @@ void _confirmPayment() {
   }
 }
 
-void _markLoanAsCompleted() {
-  // Aquí debes implementar la lógica para actualizar el campo 'completado' en la base de datos
-  // Por ejemplo, si estás usando Firestore:
+  void _markLoanAsCompleted() {
+
   FirebaseFirestore.instance
       .collection('loan')
-      .doc(widget.loanId) // Asegúrate de tener el ID del préstamo
+      .doc(widget.loanId)
       .update({'completado': true}).then((_) {
         // Mostrar un mensaje de éxito
         //SnackBarTop.showTopSnackBar(context, 'El préstamo ha sido marcado como completado.');
       }).catchError((error) {
         // Manejar errores
-        SnackBarTop.showTopSnackBar(context, 'Error al actualizar el préstamo: $error');
+        _showSnackBar('Error al actualizar el préstamo: $error');
       });
 }
 
   void _navigateToHomeScreen() {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
         (Route<dynamic> route) => false, // Elimina todas las rutas anteriores
       );
   }
 
-  // Función para construir filas de información
-pw.Row _buildInfoRow(String label, String value) {
-
-  return pw.Row(
-    mainAxisAlignment: pw.MainAxisAlignment.start,
-    children: [
-      pw.Text(label, style: const pw.TextStyle(fontSize: 14)),
-      pw.SizedBox(width: 10), 
-      pw.Expanded(
-        child: pw.Text(value, style: pw.TextStyle(fontSize: 14, fontStyle: pw.FontStyle.italic), softWrap: true),
-      ),
-    ],
-  );
-}
-
-Future<void> _printSummary(BuildContext context) async {
-  final pdf = pw.Document();
-
-  // Obtener datos del cliente
-  String clientName = ''; 
-  String clientAddress = ''; 
-  String clientIdentityCard = '';
-
-  try {
-    DocumentSnapshot loanDoc = await FirebaseFirestore.instance.collection('loan').doc(widget.loanId).get();
-    if (loanDoc.exists) {
-      clientName = loanDoc['clientName'] ?? 'Cliente Desconocido'; // Obtener el nombre del cliente
-
-      // Obtener la información del cliente usando el nombre
-      QuerySnapshot clientDoc = await FirebaseFirestore.instance.collection('clients').where('name', isEqualTo: clientName).get();
-      if (clientDoc.docs.isNotEmpty) {
-        clientAddress = clientDoc.docs.first['address'] ?? 'Dirección no disponible';
-        clientIdentityCard = clientDoc.docs.first['identityCard'] ?? 'Cédula no disponible';
-      }
-    }
-  } catch (e) {
-    print("Error al obtener la información del cliente: $e");
-  }
-
-  // Obtener la fecha actual
-  String currentDate = DateTime.now().toLocal().toString().split(' ')[0]; // Formato: YYYY-MM-DD
-
-  // Definir un tamaño de página personalizado
-  const pageWidth = PdfPageFormat(58 * PdfPageFormat.mm, 165 * PdfPageFormat.mm);
-
-pdf.addPage(
-  pw.Page(
-    pageFormat: pageWidth,
-    build: (pw.Context context) {
-      return pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.center, 
-        children: [
-          // Encabezado
-          pw.Container(
-            width: double.infinity, 
-            padding: const pw.EdgeInsets.all(10),
-            decoration: const pw.BoxDecoration(
-              border: pw.Border(bottom: pw.BorderSide(width: 2, color: PdfColors.black)),
-            ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.center,
-              children: [
-                pw.Text('Empresa', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-                pw.Text('Dirección de la Empresa', style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.italic)),
-                pw.Text('Teléfono: (123) 456-7890', style: pw.TextStyle(fontSize: 12, fontStyle: pw.FontStyle.italic)),
-              ],
-            ),
-          ),
-          pw.SizedBox(height: 20),
-          
-           // Título del recibo
-                pw.Text('Cliente', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 10),
-                
-                // Información del cliente
-                _buildInfoRow('Nombre:', clientName),
-                _buildInfoRow('Dirección:', clientAddress),
-                _buildInfoRow('Cédula:', clientIdentityCard),
-                pw.SizedBox(height: 20),
-
-                // Resumen de Pagos
-                pw.Text('Préstamo', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 10),
-
-                // Información de pagos
-                _buildInfoRow('Monto:', '\$${totalAmount?.toStringAsFixed(2)}'),
-                _buildInfoRow('Interés:', '${interestRate?.toStringAsFixed(2)}%'),
-                _buildInfoRow('Prestado:', createdAt != null ? createdAt!.toLocal().toString().split(' ')[0] : 'Fecha no disponible'),
-                _buildInfoRow('Cuotas:', '${numberOfInstallments! - cuotasRestantes}/${numberOfInstallments!}'),
-                _buildInfoRow('Pago:', paymentFrequency!),
-          
-          // Pie de página
-          pw.SizedBox(height: 20),
-          pw.Container(
-            width: double.infinity, 
-            padding: const pw.EdgeInsets.all(10),
-            decoration: const pw.BoxDecoration(
-              border: pw.Border(top: pw.BorderSide(width: 2, color: PdfColors.black)),
-            ),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.center, 
-              children: [
-                pw.Text(
-                  'Gracias por su preferencia',
-                  style: pw.TextStyle(fontSize: 14, fontStyle: pw.FontStyle.italic),
-                ),
-                pw.Text(
-                  'Fecha de Emisión: $currentDate',
-                  style: pw.TextStyle(fontSize: 14, fontStyle: pw.FontStyle.italic),
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    },
-  ),
-);
-
-  // Mostrar vista previa del PDF
-  await Printing.layoutPdf(
-    onLayout: (PdfPageFormat format) async => pdf.save(),
-  );
-}
-
-// Método para renovar el préstamo
   Future<void> _renewLoan() async {
     try {
       await FirebaseFirestore.instance.collection('loan').doc(widget.loanId).update({'renovado': true});
-      SnackBarTop.showTopSnackBar(context, 'El préstamo ha sido renovado.');
-      Navigator.pushAndRemoveUntil(
+      _showSnackBar('El préstamo ha sido renovado.');
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => SecondScreen(clientName: clientName!)),
-        (Route<dynamic> route) => false, // Elimina todas las rutas anteriores
       );
     } catch (e) {
-      print("Error al renovar el préstamo: $e");
-      SnackBarTop.showTopSnackBar(context, 'Error al renovar el préstamo.');
+      _showSnackBar('Error al renovar el préstamo.');
     }
   }
 
-    Widget _buildDetailText(String title, String value) {
+  Widget _buildDetailText(String title, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -302,12 +173,19 @@ pdf.addPage(
         title: const Text('Gestión de Pagos'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.print, color: Colors.white),
-        //     onPressed: () => _printSummary(context),
-        //   ),
-        // ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.print, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                    MaterialPageRoute(
+                      builder: (context) => const PrintScreen(),
+                    ),
+                );
+              },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -347,14 +225,14 @@ pdf.addPage(
                         const SizedBox(width: 20), // Espacio entre botones
                         ElevatedButton(
                           onPressed: () {
-                            _printSummary(context);
+                            Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
                             backgroundColor: Colors.red,
                             padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
                           ),
-                          child: const Text('Imprimir Recibo'),
+                          child: const Text('Cancelar'),
                         ),
                       ],
                     )
@@ -391,6 +269,10 @@ pdf.addPage(
                     const SizedBox(height: 20),
                     _buildDetailText('Cuotas Pagadas:', '${numberOfInstallments! - cuotasRestantes}/${numberOfInstallments!}'),
                     const SizedBox(height: 20),
+                    _buildDetailText('Cantidad Prestada:', '\$${totalAmount!.toStringAsFixed(2)}'),
+                    const SizedBox(height: 20),
+                    _buildDetailText('Tasa de Interés:', '\$${(totalAmount! * interestRate! / 100).toStringAsFixed(2)}'),
+                    const SizedBox(height: 20),
                     _buildDetailText('Cantidad a Pagar:', '\$${(totalAmount! + (totalAmount! * interestRate! / 100)).toStringAsFixed(2)}'),
                     const SizedBox(height: 20),
                     _buildDetailText('Cantidad Pagada:', '\$${(totalAmount! + (totalAmount! * interestRate! / 100) - (cuotasRestantes * (totalAmount! + (totalAmount! * interestRate! / 100)) / numberOfInstallments!)).toStringAsFixed(2)}'),
@@ -414,14 +296,14 @@ pdf.addPage(
                         const SizedBox(width: 20), // Espacio entre botones
                         ElevatedButton(
                           onPressed: () {
-                            _printSummary(context);
+                            Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
                             backgroundColor: Colors.red,
                             padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
                           ),
-                          child: const Text('Imprimir Recibo'),
+                          child: const Text('Cancelar'),
                         ),
                       ],
                     ),
