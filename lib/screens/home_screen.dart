@@ -332,21 +332,14 @@ class HomeScreenState extends State<HomeScreen> {
           children: [
             IconButton(
               icon: const Icon(Icons.person),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ClientDetailsScreen(
-                      clientName: client.name,
-                      clientPhone: client.phone,
-                      emergencyContactName: client.emergencyContactName,
-                      emergencyContactPhone: client.emergencyContactPhone,
-                      address: client.address,
-                      identityCard: client.identityCard,
-                    ),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ClientDetailsScreen(
+                    client: client,
                   ),
-                );
-              },
+                ),
+              ),
             ),
             IconButton(
               icon: const Icon(Icons.account_balance),
@@ -407,46 +400,47 @@ class HomeScreenState extends State<HomeScreen> {
                 });
               },
             ),
-            // IconButton(
-            //   icon: const Icon(Icons.delete),
-            //   onPressed: () {
-            //     // Mostrar el diálogo de confirmación
-            //     showDialog(
-            //       context: context,
-            //       builder: (BuildContext context) {
-            //         return AlertDialog(
-            //           title: const Text('¿Desea eliminar este cliente?'),
-            //           content: const Text('NOTA: Eliminar este cliente elimina sus prestamos asociados.'),
-            //           actions: [
-            //             TextButton(
-            //               onPressed: () {
-            //                 // Llamar al método removeClient y cerrar el diálogo
-            //                 removeClient(client.name);
-            //                 Navigator.of(context).pop(); // Cerrar el diálogo
-            //               },
-            //               style: TextButton.styleFrom(
-            //               backgroundColor: Colors.teal,
-            //               foregroundColor: Colors.white,
-            //             ),
-            //               child: const Text('Eliminar'),
-            //             ),
-            //             TextButton(
-            //               onPressed: () {
-            //                 // Cerrar el diálogo al presionar Cancelar
-            //                 Navigator.of(context).pop();
-            //               },
-            //               style: TextButton.styleFrom(
-            //               backgroundColor: Colors.red,
-            //               foregroundColor: Colors.white,
-            //             ),
-            //               child: const Text('Cancelar'),
-            //             ),
-            //           ],
-            //         );
-            //       },
-            //     );
-            //   },
-            // ),
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                // Mostrar el diálogo de confirmación
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('¿Desea eliminar este cliente?'),
+                      content: const Text(
+                          'NOTA: Eliminar este cliente elimina sus prestamos asociados.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            // Llamar al método removeClient y cerrar el diálogo
+                            removeClient(client.name);
+                            Navigator.of(context).pop(); // Cerrar el diálogo
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.teal,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Eliminar'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // Cerrar el diálogo al presionar Cancelar
+                            Navigator.of(context).pop();
+                          },
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Cancelar'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
       ),

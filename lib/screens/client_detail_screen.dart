@@ -1,21 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:prestamos/models/client/client.dart';
 
 class ClientDetailsScreen extends StatelessWidget {
-  final String clientName;
-  final String clientPhone;
-  final String emergencyContactName;
-  final String emergencyContactPhone;
-  final String address; // Nuevo campo
-  final String identityCard; // Nuevo campo
-
+  final Client client;
   const ClientDetailsScreen({
     super.key,
-    required this.clientName,
-    required this.clientPhone,
-    required this.emergencyContactName,
-    required this.emergencyContactPhone,
-    required this.address, // Agregar parámetro
-    required this.identityCard, // Agregar parámetro
+    required this.client,
   });
 
   @override
@@ -29,7 +19,8 @@ class ClientDetailsScreen extends StatelessWidget {
       body: Container(
         color: Colors.grey[200],
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView( // Agregar SingleChildScrollView aquí
+        child: SingleChildScrollView(
+          // Agregar SingleChildScrollView aquí
           child: Center(
             child: Card(
               color: Colors.white,
@@ -45,22 +36,39 @@ class ClientDetailsScreen extends StatelessWidget {
                   children: [
                     const Text(
                       'Contacto del Cliente',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal),
                     ),
                     const SizedBox(height: 16),
-                    _buildListTile(Icons.person, 'Nombre Completo', clientName),
-                    _buildListTile(Icons.phone, 'Teléfono', clientPhone),
-                    _buildListTile(Icons.home, 'Dirección actual', address),
-                    _buildListTile(Icons.card_membership, 'Cédula de Identidad', identityCard),
+                    _buildListTile(
+                        Icons.person, 'Nombre Completo', client.name),
+                    _buildListTile(Icons.phone, 'Teléfono', client.phone),
+                    _buildListTile(
+                        Icons.home, 'Dirección actual', client.address),
+                    _buildListTile(
+                      Icons.card_membership,
+                      'Cédula de Identidad',
+                      client.identityCard,
+                    ),
                     const Divider(),
                     const SizedBox(height: 16),
                     const Text(
                       'Contacto de Emergencia',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal),
                     ),
                     const SizedBox(height: 16),
-                    _buildListTile(Icons.person, 'Nombre Completo', emergencyContactName),
-                    _buildListTile(Icons.phone, 'Teléfono', emergencyContactPhone),
+                    _buildListTile(Icons.person, 'Nombre Completo',
+                        client.emergencyContactName),
+                    _buildListTile(
+                      Icons.phone,
+                      'Teléfono',
+                      client.emergencyContactPhone,
+                    ),
                   ],
                 ),
               ),
@@ -75,14 +83,16 @@ class ClientDetailsScreen extends StatelessWidget {
     return ListTile(
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
+        style:
+            const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
       ),
       subtitle: Text(
         subtitle,
         style: const TextStyle(color: Colors.black54),
       ),
       leading: Icon(icon, color: Colors.teal),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     );
   }
 }
