@@ -13,6 +13,7 @@ class Client with _$Client {
     required String emergencyContactPhone,
     required String address,
     required String identityCard,
+    required String? userId,
   }) = _Client;
   factory Client.fromJson(Map<String, Object?> json) => _$ClientFromJson(json);
 }

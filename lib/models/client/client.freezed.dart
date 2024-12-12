@@ -27,6 +27,7 @@ mixin _$Client {
   String get emergencyContactPhone => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
   String get identityCard => throw _privateConstructorUsedError;
+  String? get userId => throw _privateConstructorUsedError;
 
   /// Serializes this Client to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -49,7 +50,8 @@ abstract class $ClientCopyWith<$Res> {
       String emergencyContactName,
       String emergencyContactPhone,
       String address,
-      String identityCard});
+      String identityCard,
+      String? userId});
 }
 
 /// @nodoc
@@ -74,6 +76,7 @@ class _$ClientCopyWithImpl<$Res, $Val extends Client>
     Object? emergencyContactPhone = null,
     Object? address = null,
     Object? identityCard = null,
+    Object? userId = freezed,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -104,6 +107,10 @@ class _$ClientCopyWithImpl<$Res, $Val extends Client>
           ? _value.identityCard
           : identityCard // ignore: cast_nullable_to_non_nullable
               as String,
+      userId: freezed == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -122,7 +129,8 @@ abstract class _$$ClientImplCopyWith<$Res> implements $ClientCopyWith<$Res> {
       String emergencyContactName,
       String emergencyContactPhone,
       String address,
-      String identityCard});
+      String identityCard,
+      String? userId});
 }
 
 /// @nodoc
@@ -145,6 +153,7 @@ class __$$ClientImplCopyWithImpl<$Res>
     Object? emergencyContactPhone = null,
     Object? address = null,
     Object? identityCard = null,
+    Object? userId = freezed,
   }) {
     return _then(_$ClientImpl(
       id: freezed == id
@@ -175,6 +184,10 @@ class __$$ClientImplCopyWithImpl<$Res>
           ? _value.identityCard
           : identityCard // ignore: cast_nullable_to_non_nullable
               as String,
+      userId: freezed == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -189,7 +202,8 @@ class _$ClientImpl extends _Client {
       required this.emergencyContactName,
       required this.emergencyContactPhone,
       required this.address,
-      required this.identityCard})
+      required this.identityCard,
+      required this.userId})
       : super._();
 
   factory _$ClientImpl.fromJson(Map<String, dynamic> json) =>
@@ -209,10 +223,12 @@ class _$ClientImpl extends _Client {
   final String address;
   @override
   final String identityCard;
+  @override
+  final String? userId;
 
   @override
   String toString() {
-    return 'Client(id: $id, name: $name, phone: $phone, emergencyContactName: $emergencyContactName, emergencyContactPhone: $emergencyContactPhone, address: $address, identityCard: $identityCard)';
+    return 'Client(id: $id, name: $name, phone: $phone, emergencyContactName: $emergencyContactName, emergencyContactPhone: $emergencyContactPhone, address: $address, identityCard: $identityCard, userId: $userId)';
   }
 
   @override
@@ -229,13 +245,22 @@ class _$ClientImpl extends _Client {
                 other.emergencyContactPhone == emergencyContactPhone) &&
             (identical(other.address, address) || other.address == address) &&
             (identical(other.identityCard, identityCard) ||
-                other.identityCard == identityCard));
+                other.identityCard == identityCard) &&
+            (identical(other.userId, userId) || other.userId == userId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, phone,
-      emergencyContactName, emergencyContactPhone, address, identityCard);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      name,
+      phone,
+      emergencyContactName,
+      emergencyContactPhone,
+      address,
+      identityCard,
+      userId);
 
   /// Create a copy of Client
   /// with the given fields replaced by the non-null parameter values.
@@ -261,7 +286,8 @@ abstract class _Client extends Client {
       required final String emergencyContactName,
       required final String emergencyContactPhone,
       required final String address,
-      required final String identityCard}) = _$ClientImpl;
+      required final String identityCard,
+      required final String? userId}) = _$ClientImpl;
   const _Client._() : super._();
 
   factory _Client.fromJson(Map<String, dynamic> json) = _$ClientImpl.fromJson;
@@ -280,6 +306,8 @@ abstract class _Client extends Client {
   String get address;
   @override
   String get identityCard;
+  @override
+  String? get userId;
 
   /// Create a copy of Client
   /// with the given fields replaced by the non-null parameter values.
