@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prestamos/extensions/build_context_extension.dart';
 import 'register_screen.dart';
 import '../utils/auth.dart';
 import 'home_screen.dart';
@@ -56,7 +57,8 @@ class LoginScreenState extends State<LoginScreen> {
     }
 
     // Llamar al método de inicio de sesión
-    String? result = await _authServices.signInEmailAndPassword(email, password);
+    String? result =
+        await _authServices.signInEmailAndPassword(email, password);
     if (result != null) {
       // Si hay un mensaje de error, lo mostramos
       setState(() {
@@ -95,9 +97,9 @@ class LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Bienvenido',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.welcome,
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.teal,
@@ -115,7 +117,10 @@ class LoginScreenState extends State<LoginScreen> {
                         errorText: _emailError,
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.teal, width: 2.0),
+                          borderSide: const BorderSide(
+                            color: Colors.teal,
+                            width: 2.0,
+                          ),
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -132,16 +137,20 @@ class LoginScreenState extends State<LoginScreen> {
                         errorText: _passwordError,
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.teal, width: 2.0),
+                          borderSide:
+                              const BorderSide(color: Colors.teal, width: 2.0),
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: Colors.teal,
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscurePassword = !_obscurePassword; // Alternar visibilidad
+                              _obscurePassword =
+                                  !_obscurePassword; // Alternar visibilidad
                             });
                           },
                         ),
@@ -157,9 +166,11 @@ class LoginScreenState extends State<LoginScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 24),
                       ),
-                      child: const Text('Iniciar Sesión', style: TextStyle(fontSize: 16)),
+                      child: const Text('Iniciar Sesión',
+                          style: TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -169,15 +180,17 @@ class LoginScreenState extends State<LoginScreen> {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                              MaterialPageRoute(
+                                  builder: (context) => const RegisterScreen()),
                             );
                           },
-                          child: const Text('¿No tienes cuenta?', style: TextStyle(color: Colors.teal)),
+                          child: const Text('¿No tienes cuenta?',
+                              style: TextStyle(color: Colors.teal)),
                         ),
                       ],
                     ),
                     // Mostrar mensaje de error si existe
-                    if (_passwordError != null) 
+                    if (_passwordError != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 16.0),
                         child: Text(
