@@ -8,9 +8,15 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    // Manejo de errores: puedes mostrar un mensaje o registrar el error
+    print("Error inicializando Firebase: $e");
+    return; // Salir si hay un error
+  }
 
   runApp(const MainApp());
 }
