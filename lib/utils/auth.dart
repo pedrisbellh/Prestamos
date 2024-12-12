@@ -67,7 +67,7 @@ class AuthServices {
       switch (e.code) {
         case 'user-not-found':
           return 'No se encontró un usuario con ese correo electrónico.';
-        case 'wrong-password':
+        case 'wrong-password' || 'invalid-credential':
           return 'La contraseña es incorrecta.';
         case 'invalid-email':
           return 'El correo electrónico proporcionado no es válido.';
