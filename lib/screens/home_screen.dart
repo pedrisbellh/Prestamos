@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:prestamos/providers/client/client_provider_impl.dart';
 import 'create_screen.dart';
 import 'view_loan_screen.dart';
 import 'client_detail_screen.dart';
@@ -18,6 +19,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
+  final clientProvider = ClientProviderImpl();
   final List<Client> clients = [];
 
   List<Client> filteredClients = [];
@@ -39,34 +41,11 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     userId = _auth.currentUser?.uid;
-    _loadClients();
   }
 
   // Método para mostrar SnackBar
   void _showSnackBar(String message) {
     SnackBarTop.showTopSnackBar(context, message);
-  }
-
-  Future<void> _loadClients() async {
-    try {
-      if (userId != null) {
-        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-            .collection('clients')
-            .where('userId', isEqualTo: userId)
-            .get();
-
-        setState(() {
-          clients.clear();
-          for (var doc in querySnapshot.docs) {
-            var data = doc.data() as Map<String, dynamic>;
-            clients.add(Client.fromJson(data));
-          }
-          filteredClients = clients;
-        });
-      }
-    } catch (e) {
-      _showSnackBar('Error al cargar clientes: $e');
-    }
   }
 
 // Método para filtrar clientes
@@ -272,7 +251,7 @@ class HomeScreenState extends State<HomeScreen> {
                           ),
                         );
 
-                        await _loadClients();
+                        //await _loadClients();
                         Navigator.of(context).pop();
                         _showSnackBar('Cliente $clientName agregado');
                       } else {
@@ -530,14 +509,30 @@ class HomeScreenState extends State<HomeScreen> {
                     return _buildClientTile(filteredClients[index], index);
                   },
                 )
-          : clients.isEmpty
-              ? const Center(child: Text('No hay clientes disponibles.'))
-              : ListView.builder(
-                  itemCount: clients.length,
-                  itemBuilder: (context, index) {
-                    return _buildClientTile(clients[index], index);
-                  },
-                ),
+          : FutureBuilder(
+              future: clientProvider.getAllClientsByUser(
+                userId: userId!,
+              ),
+              builder: (context, datas) {
+                switch (datas.connectionState) {
+                  case ConnectionState.waiting:
+                    return const Center(child: CircularProgressIndicator());
+                  case ConnectionState.done:
+                    return datas.data!.isEmpty
+                        ? const Center(
+                            child: Text('No hay clientes disponibles.'))
+                        : ListView.builder(
+                            itemCount: datas.data?.length,
+                            itemBuilder: (context, index) {
+                              return _buildClientTile(
+                                  datas.data![index], index);
+                            },
+                          );
+                  default:
+                    return const SizedBox.shrink();
+                }
+              },
+            ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
