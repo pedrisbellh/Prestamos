@@ -17,60 +17,58 @@ class ClientDetailsScreen extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: Container(
+        height: double.infinity,
         color: Colors.grey[200],
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           // Agregar SingleChildScrollView aquí
-          child: Center(
-            child: Card(
-              color: Colors.white,
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Contacto del Cliente',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildListTile(
-                        Icons.person, 'Nombre Completo', client.name),
-                    _buildListTile(Icons.phone, 'Teléfono', client.phone),
-                    _buildListTile(
-                        Icons.home, 'Dirección actual', client.address),
-                    _buildListTile(
-                      Icons.card_membership,
-                      'Cédula de Identidad',
-                      client.identityCard,
-                    ),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Contacto de Emergencia',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.teal),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildListTile(Icons.person, 'Nombre Completo',
-                        client.emergencyContactName),
-                    _buildListTile(
-                      Icons.phone,
-                      'Teléfono',
-                      client.emergencyContactPhone,
-                    ),
-                  ],
-                ),
+          child: Card(
+            color: Colors.white,
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Contacto del Cliente',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildListTile(Icons.person, 'Nombre Completo', client.name),
+                  _buildListTile(Icons.phone, 'Teléfono', client.phone),
+                  _buildListTile(
+                      Icons.home, 'Dirección actual', client.address),
+                  _buildListTile(
+                    Icons.card_membership,
+                    'Cédula de Identidad',
+                    client.identityCard,
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Contacto de Emergencia',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildListTile(Icons.person, 'Nombre Completo',
+                      client.emergencyContactName),
+                  _buildListTile(
+                    Icons.phone,
+                    'Teléfono',
+                    client.emergencyContactPhone,
+                  ),
+                ],
               ),
             ),
           ),
