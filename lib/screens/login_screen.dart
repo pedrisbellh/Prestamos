@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Importa el paquete
 import 'register_screen.dart';
 import '../utils/auth.dart';
 import 'home_screen.dart';
@@ -18,12 +19,49 @@ class LoginScreenState extends State<LoginScreen> {
   String? _passwordError;
   final AuthServices _authServices = AuthServices();
   bool _obscurePassword = true;
+  bool _rememberMe = false; // Variable para recordar credenciales
 
   bool _isValidEmail(String email) {
     final RegExp emailRegex = RegExp(
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     );
     return emailRegex.hasMatch(email);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCredentials(); // Cargar credenciales al iniciar
+  }
+
+  // Método para cargar las credenciales guardadas
+  void _loadCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? email = prefs.getString('email');
+    String? password = prefs.getString('password');
+    bool? rememberMe = prefs.getBool('rememberMe');
+
+    if (rememberMe == true) {
+      setState(() {
+        _emailController.text = email ?? '';
+        _passwordController.text = password ?? '';
+        _rememberMe = true;
+      });
+    }
+  }
+
+  // Método para guardar las credenciales
+  void _saveCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (_rememberMe) {
+      await prefs.setString('email', _emailController.text);
+      await prefs.setString('password', _passwordController.text);
+      await prefs.setBool('rememberMe', true);
+    } else {
+      await prefs.remove('email');
+      await prefs.remove('password');
+      await prefs.setBool('rememberMe', false);
+    }
   }
 
   void _login() async {
@@ -60,11 +98,13 @@ class LoginScreenState extends State<LoginScreen> {
     String? result =
         await _authServices.signInEmailAndPassword(email, password);
     if (result != null) {
-      // Si hay un mensaje de error, lo mostramos
       setState(() {
         _passwordError = result; // Muestra el mensaje de error específico
       });
     } else {
+      // Guardar credenciales si se seleccionó recordar
+      _saveCredentials();
+
       // Inicio de sesión exitoso, navegar a la pantalla principal
       if (mounted) {
         Navigator.pushReplacement(
@@ -156,6 +196,21 @@ class LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       obscureText: _obscurePassword,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _rememberMe,
+                          activeColor: Colors.teal,
+                          onChanged: (value) {
+                            setState(() {
+                              _rememberMe = value ?? false;
+                            });
+                          },
+                        ),
+                        const Text('Recordar credenciales'),
+                      ],
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(

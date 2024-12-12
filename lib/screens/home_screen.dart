@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:prestamos/providers/client/client_provider_impl.dart';
-import 'create_screen.dart';
+import 'create_loan_screen.dart';
 import 'view_loan_screen.dart';
 import 'client_detail_screen.dart';
 import '../utils/upper_case_text_formatter.dart';
@@ -41,6 +41,19 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     userId = _auth.currentUser?.uid;
+    _loadClients(); // Cargar clientes al iniciar
+  }
+
+  // Método para cargar los clientes
+
+  Future<void> _loadClients() async {
+    final fetchedClients =
+        await clientProvider.getAllClientsByUser(userId: userId!);
+    setState(() {
+      clients.clear();
+      clients.addAll(fetchedClients);
+      filteredClients = clients; // Actualiza la lista filtrada
+    });
   }
 
   // Método para mostrar SnackBar
@@ -77,7 +90,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   String? _validateName(String? value) {
     if (value == null || value.trim().split(' ').length < 3) {
-      return 'Ingresa el nombre completo.';
+      return 'Ingresa el nombre(s) y apellidos.';
     }
     return null;
   }
@@ -111,6 +124,8 @@ class HomeScreenState extends State<HomeScreen> {
         ),
       ),
       validator: validator,
+      keyboardType: TextInputType.text,
+      maxLines: null,
     );
   }
 
@@ -122,8 +137,7 @@ class HomeScreenState extends State<HomeScreen> {
     return TextFormField(
       controller: controller,
       inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(
-            r'[\d\s\+\-()]')), // Permitir números y caracteres especiales
+        FilteringTextInputFormatter.allow(RegExp(r'[\d\s\+\-()]')),
       ],
       decoration: InputDecoration(
         hintText: hintText,
@@ -137,8 +151,38 @@ class HomeScreenState extends State<HomeScreen> {
         ),
       ),
       validator: validator,
-      keyboardType: TextInputType
-          .text, // Cambiar a texto para permitir caracteres especiales
+      keyboardType: TextInputType.number,
+    );
+  }
+
+  Widget _buildMixtField({
+    required TextEditingController controller,
+    required String hintText,
+    required String? Function(String?) validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(
+            r'[a-zA-Z0-9#\s]')), // Permite letras, números, espacios y '#'
+      ],
+
+      decoration: InputDecoration(
+        hintText: hintText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.teal),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.teal, width: 2.0),
+        ),
+      ),
+
+      validator: validator,
+
+      maxLines: null, // Permite múltiples líneas
     );
   }
 
@@ -147,7 +191,6 @@ class HomeScreenState extends State<HomeScreen> {
     phoneNumberController.clear();
     emergencyContactNameController.clear();
     emergencyContactPhoneController.clear();
-    // Nuevos controladores para los campos de dirección y carne de identidad
     final TextEditingController addressController = TextEditingController();
     final TextEditingController identityCardController =
         TextEditingController();
@@ -177,7 +220,7 @@ class HomeScreenState extends State<HomeScreen> {
                     validator: _validatePhone,
                   ),
                   const SizedBox(height: 10),
-                  _buildTextField(
+                  _buildMixtField(
                     controller: addressController,
                     hintText: 'Dirección del Cliente',
                     validator: (value) => value == null || value.isEmpty
@@ -248,12 +291,13 @@ class HomeScreenState extends State<HomeScreen> {
                             address: address,
                             identityCard: identityCard,
                             id: doc.id,
+                            userId: userId,
                           ),
                         );
 
-                        //await _loadClients();
                         Navigator.of(context).pop();
                         _showSnackBar('Cliente $clientName agregado');
+                        await _loadClients();
                       } else {
                         _showSnackBar('El cliente ya existe');
                       }
@@ -360,7 +404,7 @@ class HomeScreenState extends State<HomeScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            SecondScreen(clientName: client.name),
+                            CreateLoanScreen(clientName: client.name),
                       ),
                     );
                   }

@@ -5,18 +5,18 @@ import 'package:intl/intl.dart';
 import 'package:prestamos/screens/view_loan_screen.dart';
 import '../utils/snack_bar_top.dart';
 import '../utils/loan_calculator.dart';
-import '/services/firebase_service.dart'; 
+import '/services/firebase_service.dart';
 
-class SecondScreen extends StatefulWidget {
+class CreateLoanScreen extends StatefulWidget {
   final String clientName;
 
-  const SecondScreen({super.key, required this.clientName});
+  const CreateLoanScreen({super.key, required this.clientName});
 
   @override
-  SecondScreenState createState() => SecondScreenState();
+  CreateLoanScreenState createState() => CreateLoanScreenState();
 }
 
-class SecondScreenState extends State<SecondScreen> {
+class CreateLoanScreenState extends State<CreateLoanScreen> {
   late TextEditingController _amountController;
   final TextEditingController clientNameController = TextEditingController();
   final TextEditingController interestRateController = TextEditingController();
@@ -52,27 +52,29 @@ class SecondScreenState extends State<SecondScreen> {
     if (amount > 0 && interest >= 0 && numberOfInstallments > 1) {
       setState(() {
         totalToPay = LoanCalculator.calculateTotalToPay(amount, interest);
-        amountToPayPerInstallment = LoanCalculator.calculateAmountPerInstallment(totalToPay!, numberOfInstallments);
+        amountToPayPerInstallment =
+            LoanCalculator.calculateAmountPerInstallment(
+                totalToPay!, numberOfInstallments);
       });
     }
   }
 
   // Método para mostrar SnackBar
   void _showSnackBar(String message) {
-      SnackBarTop.showTopSnackBar(context, message);
-    }
+    SnackBarTop.showTopSnackBar(context, message);
+  }
 
   // Método para navegar a la pantalla de detalles del préstamo
   void _navigateToLoanDetails(String loanId) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ViewLoanScreen(
-            loanId: loanId, // Pasa el ID del préstamo aquí
-          ),
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ViewLoanScreen(
+          loanId: loanId, // Pasa el ID del préstamo aquí
         ),
-      );
-    }
+      ),
+    );
+  }
 
   String? _validateAmount(String? value) {
     final amount = double.tryParse(value ?? '');
@@ -105,7 +107,8 @@ class SecondScreenState extends State<SecondScreen> {
   void confirmLoan() async {
     final amountError = _validateAmount(_amountController.text);
     final interestError = _validateInterestRate(interestRateController.text);
-    final installmentsError = _validateInstallments(numberOfInstallments.toString());
+    final installmentsError =
+        _validateInstallments(numberOfInstallments.toString());
 
     setState(() {
       this.amountError = amountError;
@@ -113,7 +116,9 @@ class SecondScreenState extends State<SecondScreen> {
       this.installmentsError = installmentsError;
     });
 
-    if (amountError != null || interestError != null || installmentsError != null) {
+    if (amountError != null ||
+        interestError != null ||
+        installmentsError != null) {
       return; // No continuar si hay errores
     }
 
@@ -122,7 +127,8 @@ class SecondScreenState extends State<SecondScreen> {
       // Guarda el préstamo y obtén el ID
       String loanId = await saveLoanToFirestore(
         clientName: widget.clientName,
-        userId: FirebaseAuth.instance.currentUser !.uid, // Obtener el userId del usuario actual
+        userId: FirebaseAuth
+            .instance.currentUser!.uid, // Obtener el userId del usuario actual
         amount: double.parse(_amountController.text),
         interestRate: double.parse(interestRateController.text),
         numberOfInstallments: numberOfInstallments,
@@ -183,7 +189,8 @@ class SecondScreenState extends State<SecondScreen> {
                       decoration: InputDecoration(
                         labelText: 'Monto a prestar',
                         border: const OutlineInputBorder(),
-                        errorText: amountError, // Muestra el mensaje de error aquí
+                        errorText:
+                            amountError, // Muestra el mensaje de error aquí
                         errorBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.red),
                         ),
@@ -208,7 +215,8 @@ class SecondScreenState extends State<SecondScreen> {
                       decoration: InputDecoration(
                         labelText: 'Tasa de Interés (%)',
                         border: const OutlineInputBorder(),
-                        errorText: interestError, // Muestra el mensaje de error aquí
+                        errorText:
+                            interestError, // Muestra el mensaje de error aquí
                         errorBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.red),
                         ),
@@ -234,8 +242,13 @@ class SecondScreenState extends State<SecondScreen> {
                         labelText: 'Frecuencia de Pago',
                         border: OutlineInputBorder(),
                       ),
-                      items: <String>['Diario', 'Semanal', 'Quincenal', 'Mensual', 'Anual']
-                          .map<DropdownMenuItem<String>>((String value) {
+                      items: <String>[
+                        'Diario',
+                        'Semanal',
+                        'Quincenal',
+                        'Mensual',
+                        'Anual'
+                      ].map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value),
@@ -252,7 +265,8 @@ class SecondScreenState extends State<SecondScreen> {
                       decoration: InputDecoration(
                         labelText: 'Número de Cuotas',
                         border: const OutlineInputBorder(),
-                        errorText: installmentsError, // Muestra el mensaje de error aquí
+                        errorText:
+                            installmentsError, // Muestra el mensaje de error aquí
                         errorBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.red),
                         ),
@@ -266,18 +280,20 @@ class SecondScreenState extends State<SecondScreen> {
                         setState(() {
                           if (installments != null && installments > 1) {
                             numberOfInstallments = installments;
-                            installmentsError = null; // Limpiar error si es válido
+                            installmentsError =
+                                null; // Limpiar error si es válido
                           } else {
                             installmentsError = _validateInstallments(value);
                           }
                         });
-                          calculateInstallment();
+                        calculateInstallment();
                       },
                     ),
                     const SizedBox(height: 16),
                     if (totalToPay != null) ...[
                       Text('Total a pagar: ${formatCurrency(totalToPay)}'),
-                      Text('Monto por cuota: ${formatCurrency(amountToPayPerInstallment)}'),
+                      Text(
+                          'Monto por cuota: ${formatCurrency(amountToPayPerInstallment)}'),
                     ],
                     const SizedBox(height: 16),
                     Row(
@@ -286,7 +302,8 @@ class SecondScreenState extends State<SecondScreen> {
                         ElevatedButton(
                           onPressed: confirmLoan,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal, // Cambiar color a teal
+                            backgroundColor:
+                                Colors.teal, // Cambiar color a teal
                             foregroundColor: Colors.white,
                           ),
                           child: const Text('Aceptar'),
