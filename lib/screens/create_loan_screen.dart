@@ -70,7 +70,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => ViewLoanScreen(
-          loanId: loanId, // Pasa el ID del préstamo aquí
+          loanId: loanId,
         ),
       ),
     );
@@ -100,11 +100,11 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
     return null;
   }
 
-  void cancelLoan() {
+  void _cancelLoan() {
     Navigator.pop(context);
   }
 
-  void confirmLoan() async {
+  void _confirmLoan() async {
     final amountError = _validateAmount(_amountController.text);
     final interestError = _validateInterestRate(interestRateController.text);
     final installmentsError =
@@ -300,7 +300,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton(
-                          onPressed: confirmLoan,
+                          onPressed: _confirmLoan,
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 Colors.teal, // Cambiar color a teal
@@ -310,7 +310,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                         ),
                         const SizedBox(width: 40),
                         ElevatedButton(
-                          onPressed: cancelLoan,
+                          onPressed: _cancelLoan,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,
                             foregroundColor: Colors.white,

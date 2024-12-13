@@ -1,10 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:prestamos/models/company/company.dart';
 import 'package:prestamos/providers/client/client_provider_impl.dart';
+import 'package:prestamos/screens/user_panel_screen.dart';
+import 'package:prestamos/screens/create_company_screen.dart';
+import 'package:prestamos/screens/view_company_screen.dart';
 import 'create_loan_screen.dart';
 import 'view_loan_screen.dart';
-import 'client_detail_screen.dart';
+import 'client_details_screen.dart';
 import '../utils/upper_case_text_formatter.dart';
 import '../utils/snack_bar_top.dart';
 import '../models/client/client.dart';
@@ -45,7 +49,6 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   // Método para cargar los clientes
-
   Future<void> _loadClients() async {
     final fetchedClients =
         await clientProvider.getAllClientsByUser(userId: userId!);
@@ -520,6 +523,65 @@ class HomeScreenState extends State<HomeScreen> {
             : const Text('Gestión de Clientes'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        leading: PopupMenuButton<int>(
+          icon: const Icon(Icons.more_vert),
+          onSelected: (value) async {
+            switch (value) {
+              case 1:
+                // Verificar si existe una empresa para el usuario
+                String userId = FirebaseAuth.instance.currentUser!
+                    .uid; // Obtener el ID del usuario logueado
+                Company? company = await getCompanyFromFirestore(
+                    userId); // Llama a tu método para obtener la empresa
+
+                if (company != null) {
+                  // Si existe la empresa, navegar a la vista de detalles de la empresa
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ViewCompanyScreen(userId: userId),
+                    ),
+                  );
+                } else {
+                  // Si no existe, navegar a la vista de crear empresa
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CreateCompanyScreen(),
+                    ),
+                  );
+                }
+                break;
+              case 2:
+                // Navegar a la vista "Panel de Usuario"
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UserPanelScreen(),
+                  ),
+                );
+                break;
+              case 3:
+                // Cerrar Sesión
+                _logout(context);
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem<int>(
+              value: 1,
+              child: Text('Ver Empresa'),
+            ),
+            const PopupMenuItem<int>(
+              value: 2,
+              child: Text('Panel de Usuario'),
+            ),
+            const PopupMenuItem<int>(
+              value: 3,
+              child: Text('Cerrar Sesión'),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: Icon(isSearching ? Icons.clear : Icons.search),
@@ -554,7 +616,10 @@ class HomeScreenState extends State<HomeScreen> {
               builder: (context, datas) {
                 switch (datas.connectionState) {
                   case ConnectionState.waiting:
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(
+                        child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                    ));
                   case ConnectionState.done:
                     return datas.data!.isEmpty
                         ? const Center(
@@ -578,19 +643,10 @@ class HomeScreenState extends State<HomeScreen> {
             onPressed: addClient,
             backgroundColor: Colors.teal,
             foregroundColor: Colors.white,
-            heroTag: 'add_client', // Tag único para el botón de adicionar
-            child: const Icon(Icons.add),
+            heroTag: 'add_client',
+            child: const Icon(Icons.person_add),
           ),
           const SizedBox(height: 16),
-          FloatingActionButton(
-            onPressed: () async {
-              await _logout(context);
-            },
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            heroTag: 'logout', // Tag único para el botón de cerrar sesión
-            child: const Icon(Icons.logout),
-          ),
         ],
       ),
     );

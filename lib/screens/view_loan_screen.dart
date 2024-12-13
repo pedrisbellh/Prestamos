@@ -33,7 +33,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchLoanData(); // Cargar los datos del préstamo
+    _fetchLoanData();
   }
 
   // Método para mostrar SnackBar
@@ -57,16 +57,8 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
           cuotasRestantes = (numberOfInstallments ?? 0) - (selectedCuota ?? 0);
           createdAt = (doc['createdAt'] as Timestamp).toDate();
           fechaUltimoPago = (doc['createdAt'] as Timestamp).toDate();
-          completado =
-              doc['completado'] ?? false; // Obtener el estado de completado
-          clientName = doc['clientName'] ?? ''; // Obtener el nombre del cliente
-
-          // Asegúrate de que estás recuperando la fecha del último pago
-          // if (doc['fechaUltimoPago'] != null) {
-          //   fechaUltimoPago = (doc['fechaUltimoPago'] as Timestamp).toDate();
-          // } else {
-          //   fechaUltimoPago = null; // O asigna una fecha por defecto si es necesario
-          // }
+          completado = doc['completado'] ?? false;
+          clientName = doc['clientName'] ?? '';
         });
       } else {
         _showSnackBar('Préstamo no encontrado.');
@@ -181,8 +173,9 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
         numberOfInstallments == null ||
         paymentFrequency == null) {
       return const Center(
-          child:
-              CircularProgressIndicator()); // Muestra un indicador de carga mientras se obtienen los datos
+          child: CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+      ));
     }
 
     return Scaffold(
