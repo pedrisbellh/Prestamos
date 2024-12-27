@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:prestamos/extensions/build_context_extension.dart';
 import 'package:prestamos/models/company/company.dart';
 import 'package:prestamos/providers/client/client_provider_impl.dart';
 import 'package:prestamos/screens/user_panel_screen.dart';
@@ -45,26 +46,23 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     userId = _auth.currentUser?.uid;
-    _loadClients(); // Cargar clientes al iniciar
+    _loadClients();
   }
 
-  // Método para cargar los clientes
   Future<void> _loadClients() async {
     final fetchedClients =
         await clientProvider.getAllClientsByUser(userId: userId!);
     setState(() {
       clients.clear();
       clients.addAll(fetchedClients);
-      filteredClients = clients; // Actualiza la lista filtrada
+      filteredClients = clients;
     });
   }
 
-  // Método para mostrar SnackBar
   void _showSnackBar(String message) {
     SnackBarTop.showTopSnackBar(context, message);
   }
 
-// Método para filtrar clientes
   void _filterClients(String query) {
     if (query.isEmpty) {
       setState(() {
@@ -93,7 +91,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   String? _validateName(String? value) {
     if (value == null || value.trim().split(' ').length < 3) {
-      return 'Ingresa el nombre(s) y apellidos.';
+      return context.l10n.fullName;
     }
     return null;
   }
@@ -102,7 +100,7 @@ class HomeScreenState extends State<HomeScreen> {
     final phoneRegex =
         RegExp(r'^\+?[0-9]{8,15}$'); // Permitir números con código de país
     if (value == null || !phoneRegex.hasMatch(value)) {
-      return 'El número de teléfono no es válido.';
+      return context.l10n.wrongPhone;
     }
     return null;
   }
@@ -165,12 +163,9 @@ class HomeScreenState extends State<HomeScreen> {
   }) {
     return TextFormField(
       controller: controller,
-
       inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(
-            r'[a-zA-Z0-9#\s]')), // Permite letras, números, espacios y '#'
+        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9#\s]')),
       ],
-
       decoration: InputDecoration(
         hintText: hintText,
         border: OutlineInputBorder(
@@ -182,10 +177,8 @@ class HomeScreenState extends State<HomeScreen> {
           borderSide: const BorderSide(color: Colors.teal, width: 2.0),
         ),
       ),
-
       validator: validator,
-
-      maxLines: null, // Permite múltiples líneas
+      maxLines: null,
     );
   }
 
@@ -203,8 +196,9 @@ class HomeScreenState extends State<HomeScreen> {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Agregar Cliente',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          title: Text(context.l10n.addClient,
+              style:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Form(
               key: _formKey,
@@ -213,45 +207,45 @@ class HomeScreenState extends State<HomeScreen> {
                 children: [
                   _buildTextField(
                     controller: clientNameController,
-                    hintText: 'Nombre del Cliente',
+                    hintText: context.l10n.fullName,
                     validator: _validateName,
                   ),
                   const SizedBox(height: 10),
                   _buildNumberField(
                     controller: phoneNumberController,
-                    hintText: 'Teléfono del Cliente',
+                    hintText: context.l10n.telephone,
                     validator: _validatePhone,
                   ),
                   const SizedBox(height: 10),
                   _buildMixtField(
                     controller: addressController,
-                    hintText: 'Dirección del Cliente',
+                    hintText: context.l10n.direction,
                     validator: (value) => value == null || value.isEmpty
-                        ? 'Ingresa la dirección.'
+                        ? context.l10n.emptyField
                         : null,
                   ),
                   const SizedBox(height: 10),
                   _buildNumberField(
                     controller: identityCardController,
-                    hintText: 'Cédula de Identidad',
+                    hintText: context.l10n.clientId,
                     validator: (value) => value == null || value.isEmpty
-                        ? 'Ingresa la cédula de identidad.'
+                        ? context.l10n.emptyField
                         : null,
                   ),
                   const SizedBox(height: 20),
-                  const Text('Contacto de Emergencia',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(context.l10n.emergencyContact,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 14),
                   _buildTextField(
                     controller: emergencyContactNameController,
-                    hintText: 'Nombre de Emergencia',
+                    hintText: context.l10n.fullName,
                     validator: _validateName,
                   ),
                   const SizedBox(height: 10),
                   _buildNumberField(
                     controller: emergencyContactPhoneController,
-                    hintText: 'Teléfono de Emergencia',
+                    hintText: context.l10n.telephone,
                     validator: _validatePhone,
                   ),
                 ],
@@ -299,10 +293,10 @@ class HomeScreenState extends State<HomeScreen> {
                         );
 
                         Navigator.of(context).pop();
-                        _showSnackBar('Cliente $clientName agregado');
+                        _showSnackBar(context.l10n.clientAdd);
                         await _loadClients();
                       } else {
-                        _showSnackBar('El cliente ya existe');
+                        _showSnackBar(context.l10n.existingClient);
                       }
                     }
                   },
@@ -310,7 +304,7 @@ class HomeScreenState extends State<HomeScreen> {
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text('Aceptar'),
+                  child: Text(context.l10n.acept),
                 ),
                 const SizedBox(width: 40),
                 TextButton(
@@ -321,7 +315,7 @@ class HomeScreenState extends State<HomeScreen> {
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text('Cancelar'),
+                  child: Text(context.l10n.cancel),
                 ),
               ],
             )
@@ -333,34 +327,28 @@ class HomeScreenState extends State<HomeScreen> {
 
   void removeClient(String clientName) async {
     try {
-      // Primero, busca el cliente por nombre para obtener su ID
       var clientDoc = await FirebaseFirestore.instance
           .collection('clients')
           .where('name', isEqualTo: clientName)
-          .where('userId',
-              isEqualTo:
-                  userId) // Asegúrate de que el cliente pertenezca al usuario actual
+          .where('userId', isEqualTo: userId)
           .get();
 
       if (clientDoc.docs.isNotEmpty) {
-        String clientId = clientDoc
-            .docs.first.id; // Obtén el ID del primer cliente encontrado
+        String clientId = clientDoc.docs.first.id;
 
-        // Primero, elimina el préstamo asociado al cliente
         await deleteLoanForClient(clientName, userId!);
 
-        // Luego, elimina el cliente
         await deleteClientFromFirestore(clientId);
 
         setState(() {
           clients.removeWhere((client) => client.name == clientName);
         });
-        _showSnackBar("Cliente '$clientName' eliminado");
+        _showSnackBar(context.l10n.clientDeleted);
       } else {
-        _showSnackBar('Cliente no encontrado o no pertenece al usuario actual');
+        _showSnackBar(context.l10n.clientNotFound);
       }
     } catch (e) {
-      _showSnackBar('Error al eliminar el cliente');
+      _showSnackBar(context.l10n.error);
     }
   }
 
@@ -399,10 +387,8 @@ class HomeScreenState extends State<HomeScreen> {
                     .get()
                     .then((querySnapshot) {
                   if (querySnapshot.docs.isNotEmpty) {
-                    // Si ya existe un préstamo para este cliente
-                    _showSnackBar('Ya existe un préstamo para ${client.name}');
+                    _showSnackBar(context.l10n.existLoan);
                   } else {
-                    // Si no existe un préstamo, navega a la pantalla de creación de préstamo
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -412,7 +398,7 @@ class HomeScreenState extends State<HomeScreen> {
                     );
                   }
                 }).catchError((error) {
-                  _showSnackBar('Error al buscar el préstamo: $error');
+                  _showSnackBar(context.l10n.error);
                 });
               },
             ),
@@ -439,49 +425,47 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   } else {
-                    _showSnackBar(
-                        'No se encontró ningún préstamo para ${client.name}');
+                    _showSnackBar(context.l10n.noLoan);
                   }
                 }).catchError((error) {
-                  _showSnackBar('Error al buscar el préstamo: $error');
+                  _showSnackBar(context.l10n.error);
                 });
               },
             ),
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
-                // Mostrar el diálogo de confirmación
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text('¿Desea eliminar este cliente?'),
-                      content: const Text(
-                          'NOTA: Eliminar este cliente elimina sus prestamos asociados.'),
+                      title: Text(context.l10n.deleteClient),
+                      content: Text(context.l10n.deleteNote),
                       actions: [
+                        const SizedBox(width: 10),
                         TextButton(
                           onPressed: () {
-                            // Llamar al método removeClient y cerrar el diálogo
                             removeClient(client.name);
-                            Navigator.of(context).pop(); // Cerrar el diálogo
+                            Navigator.of(context).pop();
                           },
                           style: TextButton.styleFrom(
                             backgroundColor: Colors.teal,
                             foregroundColor: Colors.white,
                           ),
-                          child: const Text('Eliminar'),
+                          child: Text(context.l10n.acept),
                         ),
+                        const SizedBox(width: 20),
                         TextButton(
                           onPressed: () {
-                            // Cerrar el diálogo al presionar Cancelar
                             Navigator.of(context).pop();
                           },
                           style: TextButton.styleFrom(
                             backgroundColor: Colors.red,
                             foregroundColor: Colors.white,
                           ),
-                          child: const Text('Cancelar'),
+                          child: Text(context.l10n.cancel),
                         ),
+                        const SizedBox(width: 10),
                       ],
                     );
                   },
@@ -499,7 +483,7 @@ class HomeScreenState extends State<HomeScreen> {
       await FirebaseAuth.instance.signOut();
       Navigator.of(context).pushReplacementNamed('/');
     } catch (e) {
-      _showSnackBar('Error al cerrar sesión: $e');
+      _showSnackBar(context.l10n.error);
     }
   }
 
@@ -514,95 +498,91 @@ class HomeScreenState extends State<HomeScreen> {
                   _filterClients(value);
                 },
                 style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  hintText: 'Buscar cliente...',
-                  hintStyle: TextStyle(color: Colors.white70),
+                decoration: InputDecoration(
+                  hintText: context.l10n.searchClient,
+                  hintStyle: const TextStyle(color: Colors.white70),
                   border: InputBorder.none,
                 ),
               )
-            : const Text('Gestión de Clientes'),
+            : Align(
+                alignment: Alignment.centerLeft,
+                child: Text(context.l10n.clientsManagement),
+              ),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
-        leading: PopupMenuButton<int>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (value) async {
-            switch (value) {
-              case 1:
-                // Verificar si existe una empresa para el usuario
-                String userId = FirebaseAuth.instance.currentUser!
-                    .uid; // Obtener el ID del usuario logueado
-                Company? company = await getCompanyFromFirestore(
-                    userId); // Llama a tu método para obtener la empresa
-
-                if (company != null) {
-                  // Si existe la empresa, navegar a la vista de detalles de la empresa
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ViewCompanyScreen(userId: userId),
-                    ),
-                  );
-                } else {
-                  // Si no existe, navegar a la vista de crear empresa
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreateCompanyScreen(),
-                    ),
-                  );
-                }
-                break;
-              case 2:
-                // Navegar a la vista "Panel de Usuario"
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const UserPanelScreen(),
-                  ),
-                );
-                break;
-              case 3:
-                // Cerrar Sesión
-                _logout(context);
-                break;
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem<int>(
-              value: 1,
-              child: Text('Ver Empresa'),
-            ),
-            const PopupMenuItem<int>(
-              value: 2,
-              child: Text('Panel de Usuario'),
-            ),
-            const PopupMenuItem<int>(
-              value: 3,
-              child: Text('Cerrar Sesión'),
-            ),
-          ],
-        ),
         actions: [
           IconButton(
             icon: Icon(isSearching ? Icons.clear : Icons.search),
             onPressed: () {
               setState(() {
                 if (isSearching) {
-                  // Solo cerrar el campo de búsqueda si se presiona la X
                   isSearching = false;
                   searchController.clear();
-                  filteredClients = clients; // Restaurar vista original
+                  filteredClients = clients;
                 } else {
                   isSearching = true;
                 }
               });
             },
           ),
+          PopupMenuButton<int>(
+            icon: const Icon(Icons.more_vert),
+            offset: const Offset(0, 52),
+            onSelected: (value) async {
+              switch (value) {
+                case 1:
+                  String userId = FirebaseAuth.instance.currentUser!.uid;
+                  Company? company = await getCompanyFromFirestore(userId);
+
+                  if (company != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ViewCompanyScreen(userId: userId),
+                      ),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CreateCompanyScreen(),
+                      ),
+                    );
+                  }
+                  break;
+                case 2:
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const UserPanelScreen(),
+                    ),
+                  );
+                  break;
+                case 3:
+                  _logout(context);
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem<int>(
+                value: 1,
+                child: Text(context.l10n.viewCompany),
+              ),
+              PopupMenuItem<int>(
+                value: 2,
+                child: Text(context.l10n.accountDetails),
+              ),
+              PopupMenuItem<int>(
+                value: 3,
+                child: Text(context.l10n.logout),
+              ),
+            ],
+          ),
         ],
       ),
       body: isSearching
           ? filteredClients.isEmpty
-              ? const Center(child: Text('No existe el cliente.'))
+              ? Center(child: Text(context.l10n.noExistClient))
               : ListView.builder(
                   itemCount: filteredClients.length,
                   itemBuilder: (context, index) {
@@ -622,8 +602,7 @@ class HomeScreenState extends State<HomeScreen> {
                     ));
                   case ConnectionState.done:
                     return datas.data!.isEmpty
-                        ? const Center(
-                            child: Text('No hay clientes disponibles.'))
+                        ? Center(child: Text(context.l10n.noFoundClients))
                         : ListView.builder(
                             itemCount: datas.data?.length,
                             itemBuilder: (context, index) {

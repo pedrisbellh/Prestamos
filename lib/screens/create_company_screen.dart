@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:prestamos/extensions/build_context_extension.dart';
 import 'package:prestamos/services/firebase_service.dart';
 import '/utils/snack_bar_top.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,31 +29,30 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
   @override
   void initState() {
     super.initState();
-    userId = _auth.currentUser?.uid; // Obtener el ID del usuario logueado
+    userId = _auth.currentUser?.uid;
   }
 
-  // Método para mostrar SnackBar
   void _showSnackBar(String message) {
     SnackBarTop.showTopSnackBar(context, message);
   }
 
   String? _validateName(String? value) {
     if (value == null || value.isEmpty) {
-      return 'El nombre es obligatorio.';
+      return context.l10n.emptyField;
     }
     return null;
   }
 
   String? _validateAddress(String? value) {
     if (value == null || value.isEmpty) {
-      return 'La dirección es obligatoria.';
+      return context.l10n.emptyField;
     }
     return null;
   }
 
   String? _validatePhone(String? value) {
     if (value == null || value.isEmpty) {
-      return 'El teléfono es obligatorio.';
+      return context.l10n.emptyField;
     }
     return null;
   }
@@ -65,25 +65,19 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
     });
 
     if (nameError == null && addressError == null && phoneError == null) {
-      // Llamar al método para guardar la empresa
       addCompanyToFirestore(
         name: nameController.text,
         address: addressController.text,
         phone: phoneController.text,
-        rcn: rcnController.text.isNotEmpty
-            ? rcnController.text
-            : null, // Solo pasar RCN si no está vacío
-        userId: userId!, // Pasar el ID del usuario
+        rcn: rcnController.text.isNotEmpty ? rcnController.text : null,
+        userId: userId!,
       ).then((_) {
-        // Mostrar un mensaje de éxito o navegar a otra pantalla
-        _showSnackBar('Empresa guardada exitosamente');
+        _showSnackBar(context.l10n.saveCompany);
       }).catchError((error) {
-        // Manejar el error
-        _showSnackBar('Error al guardar la empresa: $error');
+        _showSnackBar(context.l10n.error);
       });
     } else {
-      // Manejar la validación de campos vacíos
-      _showSnackBar('Por favor, complete todos los campos obligatorios.');
+      _showSnackBar(context.l10n.emptyField2);
     }
   }
 
@@ -97,7 +91,7 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crear Empresa'),
+        title: Text(context.l10n.createCompany),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
@@ -119,27 +113,27 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
                     children: [
                       TextFormField(
                         controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nombre',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.name,
+                          border: const OutlineInputBorder(),
                         ),
                         validator: _validateName,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: addressController,
-                        decoration: const InputDecoration(
-                          labelText: 'Dirección',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.direction,
+                          border: const OutlineInputBorder(),
                         ),
                         validator: _validateAddress,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: phoneController,
-                        decoration: const InputDecoration(
-                          labelText: 'Teléfono',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: context.l10n.telephone,
+                          border: const OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.phone,
                         inputFormatters: <TextInputFormatter>[
@@ -150,8 +144,8 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: rcnController,
-                        decoration: const InputDecoration(
-                          labelText: 'RCN (opcional)',
+                        decoration: InputDecoration(
+                          labelText: context.l10n.rcn,
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -169,7 +163,7 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
                               backgroundColor: Colors.teal,
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text('Guardar'),
+                            child: Text(context.l10n.acept),
                           ),
                           const SizedBox(width: 40),
                           ElevatedButton(
@@ -178,7 +172,7 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
                               backgroundColor: Colors.red,
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text('Cancelar'),
+                            child: Text(context.l10n.cancel),
                           ),
                         ],
                       ),

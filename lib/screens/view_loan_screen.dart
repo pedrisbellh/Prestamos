@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:prestamos/extensions/build_context_extension.dart';
 import 'create_loan_screen.dart';
 import 'home_screen.dart';
 import '/utils/snack_bar_top.dart';
@@ -19,26 +20,65 @@ class ViewLoanScreen extends StatefulWidget {
 }
 
 class ViewLoanScreenState extends State<ViewLoanScreen> {
-  double? totalAmount; // Monto total del préstamo
-  double? interestRate; // Tasa de interés
-  int? numberOfInstallments; // Número de cuotas
-  String? paymentFrequency; // Frecuencia de pago
-  int? selectedCuota; // Cuota seleccionada
-  late int cuotasRestantes; // Cuotas restantes por pagar
-  DateTime? createdAt; // Fecha de creacion del prestamo
-  DateTime? fechaUltimoPago; //Fecha del pago de la ultima cuota
-  bool? completado; // Estado del préstamo
-  String? clientName; // Nombre del cliente
+  double? totalAmount;
+  double? interestRate;
+  int? numberOfInstallments;
+  String? paymentFrequency;
+  int? selectedCuota;
+  late int cuotasRestantes;
+  DateTime? createdAt;
+  DateTime? fechaUltimoPago;
+  DateTime? fechaNextPay;
+  bool? completado;
+  String? clientName;
+  int? previousSelectedCuota;
 
   @override
   void initState() {
     super.initState();
     _fetchLoanData();
+    selectedCuota = null;
+    previousSelectedCuota = null;
   }
 
-  // Método para mostrar SnackBar
   void _showSnackBar(String message) {
     SnackBarTop.showTopSnackBar(context, message);
+  }
+
+  DateTime? _calculateNextPaymentDate(
+      DateTime? lastPaymentDate, String? frequency) {
+    if (lastPaymentDate == null || frequency == null) return null;
+
+    DateTime nextPaymentDate = lastPaymentDate;
+
+    switch (frequency) {
+      case 'Diario':
+      case 'Daily':
+        nextPaymentDate = nextPaymentDate.add(const Duration(days: 1));
+        break;
+      case 'Semanal':
+      case 'Weekly':
+        nextPaymentDate = nextPaymentDate.add(const Duration(days: 7));
+        break;
+      case 'Quincenal':
+      case 'Biweekly':
+        nextPaymentDate = nextPaymentDate.add(const Duration(days: 14));
+        break;
+      case 'Mensual':
+      case 'Monthly':
+        nextPaymentDate = DateTime(nextPaymentDate.year,
+            nextPaymentDate.month + 1, nextPaymentDate.day);
+        break;
+      case 'Anual':
+      case 'Yearly':
+        nextPaymentDate = DateTime(nextPaymentDate.year + 1,
+            nextPaymentDate.month, nextPaymentDate.day);
+        break;
+      default:
+        break;
+    }
+
+    return nextPaymentDate;
   }
 
   Future<void> _fetchLoanData() async {
@@ -56,15 +96,17 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
           selectedCuota = doc['cuotasPagadas'] ?? 0;
           cuotasRestantes = (numberOfInstallments ?? 0) - (selectedCuota ?? 0);
           createdAt = (doc['createdAt'] as Timestamp).toDate();
-          fechaUltimoPago = (doc['createdAt'] as Timestamp).toDate();
+          fechaUltimoPago = (doc['fechaUltimoPago'] as Timestamp).toDate();
+          fechaNextPay =
+              (_calculateNextPaymentDate(fechaUltimoPago, paymentFrequency));
           completado = doc['completado'] ?? false;
           clientName = doc['clientName'] ?? '';
         });
       } else {
-        _showSnackBar('Préstamo no encontrado.');
+        _showSnackBar(context.l10n.loanNotFound);
       }
     } catch (e) {
-      _showSnackBar('Error al cargar los datos del préstamo.');
+      _showSnackBar(context.l10n.loadError);
     }
   }
 
@@ -78,36 +120,38 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
         'fechaUltimoPago': DateTime.now(),
       });
     } catch (e) {
-      _showSnackBar('Error al actualizar las cuotas pagadas.');
+      _showSnackBar(context.l10n.error);
     }
   }
 
   String formatFechaUltimoPago(DateTime? fecha) {
     if (fecha == null) {
-      return 'No hay pagos realizados';
+      return context.l10n.noPay;
     }
-    // Formato deseado: "2024-12-02"
     return DateFormat('yyyy-MM-dd').format(fecha);
   }
 
   void _confirmPayment() {
-    if (selectedCuota != null) {
-      // Lógica para confirmar el pago
+    if (selectedCuota == null || selectedCuota == 0) {
+      SnackBarTop.showTopSnackBar(context, context.l10n.selectCuote);
+      return;
+    }
+
+    if (selectedCuota != previousSelectedCuota) {
       _updateCuotasPagadas(selectedCuota!);
-      SnackBarTop.showTopSnackBar(
-          context, 'Pago de la cuota $selectedCuota confirmado.');
+      SnackBarTop.showTopSnackBar(context, context.l10n.confirmPay);
 
       setState(() {
         cuotasRestantes--;
-        // Verificar si todas las cuotas han sido pagadas
-        if (cuotasRestantes == 0 || selectedCuota == numberOfInstallments) {
-          _markLoanAsCompleted(); // Marcar el préstamo como completado
+        previousSelectedCuota = selectedCuota;
+
+        if (cuotasRestantes == 0) {
+          _markLoanAsCompleted();
         }
-        _navigateToHomeScreen(); // Navegar a la pantalla principal
+        _navigateToHomeScreen();
       });
     } else {
-      SnackBarTop.showTopSnackBar(
-          context, 'Por favor, seleccione una cuota para pagar.');
+      SnackBarTop.showTopSnackBar(context, context.l10n.changeCuote);
     }
   }
 
@@ -116,11 +160,9 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
         .collection('loan')
         .doc(widget.loanId)
         .update({'completado': true}).then((_) {
-      // Mostrar un mensaje de éxito
       //SnackBarTop.showTopSnackBar(context, 'El préstamo ha sido marcado como completado.');
     }).catchError((error) {
-      // Manejar errores
-      _showSnackBar('Error al actualizar el préstamo: $error');
+      _showSnackBar(context.l10n.error);
     });
   }
 
@@ -128,7 +170,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const HomeScreen()),
-      (Route<dynamic> route) => false, // Elimina todas las rutas anteriores
+      (Route<dynamic> route) => false,
     );
   }
 
@@ -138,14 +180,14 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
           .collection('loan')
           .doc(widget.loanId)
           .update({'renovado': true});
-      _showSnackBar('El préstamo ha sido renovado.');
+      _showSnackBar(context.l10n.renewLoan);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
             builder: (context) => CreateLoanScreen(clientName: clientName!)),
       );
     } catch (e) {
-      _showSnackBar('Error al renovar el préstamo.');
+      _showSnackBar(context.l10n.error);
     }
   }
 
@@ -167,7 +209,6 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Asegurar que los datos estén cargados antes de construir la UI
     if (totalAmount == null ||
         interestRate == null ||
         numberOfInstallments == null ||
@@ -180,7 +221,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestión de Pagos'),
+        title: Text(context.l10n.loanManagement),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         actions: [
@@ -214,10 +255,9 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (completado == true) ...[
-                    // Si el préstamo está completado
-                    const Text(
-                      'El pago del préstamo ha sido completado.',
-                      style: TextStyle(fontSize: 18),
+                    Text(
+                      context.l10n.completePay,
+                      style: const TextStyle(fontSize: 18),
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -231,9 +271,9 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 12.0, horizontal: 24.0),
                           ),
-                          child: const Text('Renovar'),
+                          child: Text(context.l10n.renew),
                         ),
-                        const SizedBox(width: 20), // Espacio entre botones
+                        const SizedBox(width: 20),
                         ElevatedButton(
                           onPressed: () {
                             Navigator.pop(context);
@@ -244,16 +284,15 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 12.0, horizontal: 24.0),
                           ),
-                          child: const Text('Cancelar'),
+                          child: Text(context.l10n.cancel),
                         ),
                       ],
                     )
                   ] else ...[
-                    // Si el préstamo no está completado
-                    const Text(
-                      'Marcador de Pagos:',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    Text(
+                      context.l10n.paySelector,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
@@ -266,13 +305,16 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                           selected: selectedCuota == cuota,
                           onSelected: (bool selected) {
                             setState(() {
-                              if (selected &&
-                                  cuotasRestantes > 0 &&
-                                  cuota ==
-                                      (numberOfInstallments! -
-                                          cuotasRestantes +
-                                          1)) {
-                                selectedCuota = cuota;
+                              if (selected && cuotasRestantes > 0) {
+                                if (cuota ==
+                                    (numberOfInstallments! -
+                                        cuotasRestantes +
+                                        1)) {
+                                  selectedCuota = cuota;
+                                } else {
+                                  SnackBarTop.showTopSnackBar(
+                                      context, context.l10n.cuoteError);
+                                }
                               }
                             });
                           },
@@ -287,40 +329,62 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                       }).toList(),
                     ),
                     const SizedBox(height: 20),
-                    _buildDetailText('Cuotas Pagadas:',
+                    _buildDetailText(context.l10n.loanPayed,
                         '${numberOfInstallments! - cuotasRestantes}/${numberOfInstallments!}'),
                     const SizedBox(height: 20),
-                    _buildDetailText('Cantidad Prestada:',
+                    _buildDetailText(context.l10n.totalAmount,
                         '\$${totalAmount!.toStringAsFixed(2)}'),
                     const SizedBox(height: 20),
-                    _buildDetailText('Tasa de Interés:',
+                    _buildDetailText(context.l10n.interestRate,
                         '\$${(totalAmount! * interestRate! / 100).toStringAsFixed(2)}'),
                     const SizedBox(height: 20),
-                    _buildDetailText('Cantidad a Pagar:',
+                    _buildDetailText(context.l10n.totalToPay,
                         '\$${(totalAmount! + (totalAmount! * interestRate! / 100)).toStringAsFixed(2)}'),
                     const SizedBox(height: 20),
-                    _buildDetailText('Cantidad Pagada:',
+                    _buildDetailText(context.l10n.amountPerInstallment,
+                        '\$${((totalAmount! + (totalAmount! * interestRate! / 100)) / numberOfInstallments!).toStringAsFixed(2)}'),
+                    const SizedBox(height: 20),
+                    _buildDetailText(context.l10n.payedAmount,
                         '\$${(totalAmount! + (totalAmount! * interestRate! / 100) - (cuotasRestantes * (totalAmount! + (totalAmount! * interestRate! / 100)) / numberOfInstallments!)).toStringAsFixed(2)}'),
                     const SizedBox(height: 20),
-                    _buildDetailText('Frecuencia de Pago:', paymentFrequency!),
+                    _buildDetailText(
+                        context.l10n.paymentFrequency, paymentFrequency!),
+                    const SizedBox(height: 20),
+                    _buildDetailText(context.l10n.lastPay,
+                        formatFechaUltimoPago(fechaUltimoPago)),
                     const SizedBox(height: 20),
                     _buildDetailText(
-                        'Ultimo Pago:', formatFechaUltimoPago(fechaUltimoPago)),
+                        context.l10n.nextPay,
+                        fechaNextPay != null
+                            ? DateFormat('yyyy-MM-dd').format(fechaNextPay!)
+                            : context.l10n.noPay),
                     const SizedBox(height: 40),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton(
-                          onPressed: _confirmPayment,
+                          onPressed: () {
+                            if (fechaNextPay != null &&
+                                fechaNextPay!.year == DateTime.now().year &&
+                                fechaNextPay!.month == DateTime.now().month &&
+                                fechaNextPay!.day == DateTime.now().day) {
+                              _confirmPayment();
+                            } else if (fechaNextPay == fechaUltimoPago) {
+                              _confirmPayment();
+                            } else {
+                              Navigator.pop(context);
+                            }
+                            //_confirmPayment();
+                          },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
                             backgroundColor: Colors.teal,
                             padding: const EdgeInsets.symmetric(
                                 vertical: 12.0, horizontal: 24.0),
                           ),
-                          child: const Text('Guardar'),
+                          child: Text(context.l10n.save),
                         ),
-                        const SizedBox(width: 20), // Espacio entre botones
+                        const SizedBox(width: 50),
                         ElevatedButton(
                           onPressed: () {
                             Navigator.pop(context);
@@ -331,7 +395,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 12.0, horizontal: 24.0),
                           ),
-                          child: const Text('Cancelar'),
+                          child: Text(context.l10n.cancel),
                         ),
                       ],
                     ),

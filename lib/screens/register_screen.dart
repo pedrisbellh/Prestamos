@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:prestamos/extensions/build_context_extension.dart';
 import '../utils/auth.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,7 +13,8 @@ class RegisterScreen extends StatefulWidget {
 class RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   String? _emailError;
   String? _passwordError;
   String? _confirmPasswordError;
@@ -30,7 +33,7 @@ class RegisterScreenState extends State<RegisterScreen> {
   void _validatePasswords() {
     if (_passwordController.text != _confirmPasswordController.text) {
       setState(() {
-        _confirmPasswordError = 'Las contraseñas no coinciden.';
+        _confirmPasswordError = context.l10n.diferentPasswords;
       });
     } else {
       setState(() {
@@ -53,9 +56,10 @@ class RegisterScreenState extends State<RegisterScreen> {
 
     if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       setState(() {
-        _emailError = email.isEmpty ? 'El correo es obligatorio.' : null;
-        _passwordError = password.isEmpty ? 'La contraseña es obligatoria.' : null;
-        _confirmPasswordError = confirmPassword.isEmpty ? 'La confirmación de la contraseña es obligatoria.' : null;
+        _emailError = email.isEmpty ? context.l10n.emptyField : null;
+        _passwordError = password.isEmpty ? context.l10n.emptyField : null;
+        _confirmPasswordError =
+            confirmPassword.isEmpty ? context.l10n.emptyField : null;
       });
       return;
     }
@@ -65,24 +69,36 @@ class RegisterScreenState extends State<RegisterScreen> {
     );
     if (!emailRegex.hasMatch(email)) {
       setState(() {
-        _emailError = 'El correo electrónico no es válido.';
+        _emailError = context.l10n.wrongEmail;
       });
       return;
     }
 
     if (password != confirmPassword) {
       setState(() {
-        _confirmPasswordError = 'Las contraseñas no coinciden.';
+        _confirmPasswordError = context.l10n.diferentPasswords;
       });
       return;
     }
 
+    // Verificar la conexión a Internet
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _errorMessage =
+            'No hay conexión a Internet. Por favor, intenta más tarde.';
+      });
+      return;
+    }
+
+    // Intentar registrar al usuario
     String? result = await _authServices.createAccount(email, password);
     if (result != null) {
       setState(() {
         _errorMessage = result;
       });
     } else {
+      // Registro exitoso
       Navigator.pop(context);
     }
   }
@@ -99,7 +115,7 @@ class RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registrar'),
+        title: Text(context.l10n.register),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
@@ -107,7 +123,9 @@ class RegisterScreenState extends State<RegisterScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Container(
           constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height - AppBar().preferredSize.height - MediaQuery.of(context).viewInsets.bottom,
+            minHeight: MediaQuery.of(context).size.height -
+                AppBar().preferredSize.height -
+                MediaQuery.of(context).viewInsets.bottom,
           ),
           child: Center(
             child: Card(
@@ -120,9 +138,9 @@ class RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Crea tu cuenta',
-                      style: TextStyle(
+                    Text(
+                      context.l10n.createAccount,
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.teal,
@@ -132,7 +150,7 @@ class RegisterScreenState extends State<RegisterScreen> {
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(
-                        labelText: 'Correo Electrónico',
+                        labelText: context.l10n.email,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Colors.teal),
@@ -140,7 +158,8 @@ class RegisterScreenState extends State<RegisterScreen> {
                         errorText: _emailError,
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.teal, width: 2.0),
+                          borderSide:
+                              const BorderSide(color: Colors.teal, width: 2.0),
                         ),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -149,7 +168,7 @@ class RegisterScreenState extends State<RegisterScreen> {
                     TextField(
                       controller: _passwordController,
                       decoration: InputDecoration(
-                        labelText: 'Contraseña',
+                        labelText: context.l10n.password,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Colors.teal),
@@ -157,11 +176,14 @@ class RegisterScreenState extends State<RegisterScreen> {
                         errorText: _passwordError,
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.teal, width: 2.0),
+                          borderSide:
+                              const BorderSide(color: Colors.teal, width: 2.0),
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: Colors.teal,
                           ),
                           onPressed: () {
@@ -177,7 +199,7 @@ class RegisterScreenState extends State<RegisterScreen> {
                     TextField(
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(
-                        labelText: 'Confirmar Contraseña',
+                        labelText: context.l10n.confirmPassword,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Colors.teal),
@@ -185,16 +207,20 @@ class RegisterScreenState extends State<RegisterScreen> {
                         errorText: _confirmPasswordError,
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.teal, width: 2.0),
+                          borderSide:
+                              const BorderSide(color: Colors.teal, width: 2.0),
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                            _obscureConfirmPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: Colors.teal,
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),
@@ -210,9 +236,11 @@ class RegisterScreenState extends State<RegisterScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 24),
                       ),
-                      child: const Text('Crear Cuenta', style: TextStyle(fontSize: 16)),
+                      child: Text(context.l10n.save,
+                          style: TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -222,7 +250,8 @@ class RegisterScreenState extends State<RegisterScreen> {
                           onPressed: () {
                             Navigator.pop(context);
                           },
-                          child: const Text('¿Ya tienes una cuenta?', style: TextStyle(color: Colors.teal)),
+                          child: Text(context.l10n.account,
+                              style: TextStyle(color: Colors.teal)),
                         ),
                       ],
                     ),

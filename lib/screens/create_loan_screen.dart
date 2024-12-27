@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:prestamos/extensions/build_context_extension.dart';
 import 'package:prestamos/screens/view_loan_screen.dart';
 import '../utils/snack_bar_top.dart';
 import '../utils/loan_calculator.dart';
@@ -21,14 +22,16 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
   final TextEditingController clientNameController = TextEditingController();
   final TextEditingController interestRateController = TextEditingController();
 
-  String paymentFrequency = 'Mensual';
+  String paymentFrequency = '';
   double? amountToPayPerInstallment;
   double? totalToPay;
   double? interesRate;
-  int numberOfInstallments = 1; // Cambiado a 1 para evitar división por cero
+  int numberOfInstallments =
+      1; // Inicializado en 1 para evitar división por cero
   String? amountError;
   String? interestError;
   String? installmentsError;
+  String? paymentFrequencyError;
 
   @override
   void initState() {
@@ -59,12 +62,10 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
     }
   }
 
-  // Método para mostrar SnackBar
   void _showSnackBar(String message) {
     SnackBarTop.showTopSnackBar(context, message);
   }
 
-  // Método para navegar a la pantalla de detalles del préstamo
   void _navigateToLoanDetails(String loanId) {
     Navigator.pushReplacement(
       context,
@@ -78,24 +79,37 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
 
   String? _validateAmount(String? value) {
     final amount = double.tryParse(value ?? '');
-    if (amount == null || amount <= 0) {
-      return 'El monto debe ser mayor que cero.';
+    if (amount == null) {
+      return context.l10n.emptyField;
+    } else if (amount <= 1) {
+      return context.l10n.invalidAmount;
     }
     return null;
   }
 
   String? _validateInterestRate(String? value) {
     final interest = double.tryParse(value ?? '');
-    if (interest == null || interest <= 0) {
-      return 'La tasa de interés debe ser mayor que cero.';
+    if (interest == null) {
+      return context.l10n.emptyField;
+    } else if (interest <= 1) {
+      return context.l10n.invalidAmount;
+    }
+    return null;
+  }
+
+  String? _validatePaymentFrequency(String? value) {
+    if (value == null || value.isEmpty) {
+      return context.l10n.emptyField;
     }
     return null;
   }
 
   String? _validateInstallments(String? value) {
     final installments = int.tryParse(value ?? '');
-    if (installments == null || installments <= 1) {
-      return 'El número de cuotas debe ser mayor que uno.';
+    if (installments == null) {
+      return context.l10n.emptyField;
+    } else if (installments <= 1) {
+      return context.l10n.invalidAmount;
     }
     return null;
   }
@@ -109,26 +123,26 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
     final interestError = _validateInterestRate(interestRateController.text);
     final installmentsError =
         _validateInstallments(numberOfInstallments.toString());
+    final paymentFrequencyError = _validatePaymentFrequency(paymentFrequency);
 
     setState(() {
       this.amountError = amountError;
       this.interestError = interestError;
       this.installmentsError = installmentsError;
+      this.paymentFrequencyError = paymentFrequencyError;
     });
 
     if (amountError != null ||
         interestError != null ||
-        installmentsError != null) {
-      return; // No continuar si hay errores
+        installmentsError != null ||
+        paymentFrequencyError != null) {
+      return;
     }
 
-    // Guardar el préstamo en Firestore
     try {
-      // Guarda el préstamo y obtén el ID
       String loanId = await saveLoanToFirestore(
         clientName: widget.clientName,
-        userId: FirebaseAuth
-            .instance.currentUser!.uid, // Obtener el userId del usuario actual
+        userId: FirebaseAuth.instance.currentUser!.uid,
         amount: double.parse(_amountController.text),
         interestRate: double.parse(interestRateController.text),
         numberOfInstallments: numberOfInstallments,
@@ -138,12 +152,11 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
         renovado: false,
       );
 
-      _showSnackBar('Préstamo creado con éxito');
+      _showSnackBar(context.l10n.createdLoan);
 
-      // Navegar a la pantalla de detalles del préstamo
       _navigateToLoanDetails(loanId);
     } catch (e) {
-      _showSnackBar('Error al crear el préstamo: $e');
+      _showSnackBar(context.l10n.error);
     }
   }
 
@@ -157,7 +170,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crear Préstamo'),
+        title: Text(context.l10n.createLoan),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
@@ -168,7 +181,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
             child: Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12), // Bordes redondeados
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -177,9 +190,9 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                   children: [
                     TextField(
                       controller: clientNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nombre del Cliente',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.fullName,
+                        border: const OutlineInputBorder(),
                       ),
                       readOnly: true,
                     ),
@@ -187,10 +200,9 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                     TextField(
                       controller: _amountController,
                       decoration: InputDecoration(
-                        labelText: 'Monto a prestar',
+                        labelText: context.l10n.amount,
                         border: const OutlineInputBorder(),
-                        errorText:
-                            amountError, // Muestra el mensaje de error aquí
+                        errorText: amountError,
                         errorBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.red),
                         ),
@@ -213,10 +225,9 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                     TextField(
                       controller: interestRateController,
                       decoration: InputDecoration(
-                        labelText: 'Tasa de Interés (%)',
+                        labelText: context.l10n.interest,
                         border: const OutlineInputBorder(),
-                        errorText:
-                            interestError, // Muestra el mensaje de error aquí
+                        errorText: interestError,
                         errorBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.red),
                         ),
@@ -238,35 +249,44 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       value: paymentFrequency,
-                      decoration: const InputDecoration(
-                        labelText: 'Frecuencia de Pago',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.frecuency,
+                        border: const OutlineInputBorder(),
+                        errorText: paymentFrequencyError,
+                        errorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
+                        focusedErrorBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
                       ),
                       items: <String>[
-                        'Diario',
-                        'Semanal',
-                        'Quincenal',
-                        'Mensual',
-                        'Anual'
+                        '',
+                        context.l10n.daily,
+                        context.l10n.weekly,
+                        context.l10n.biweekly,
+                        context.l10n.monthly,
+                        context.l10n.yearly
                       ].map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
-                          child: Text(value),
+                          child: Text(value.isEmpty ? '' : value),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           paymentFrequency = newValue!;
+                          paymentFrequencyError =
+                              _validatePaymentFrequency(paymentFrequency);
                         });
                       },
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       decoration: InputDecoration(
-                        labelText: 'Número de Cuotas',
+                        labelText: context.l10n.cantCuotes,
                         border: const OutlineInputBorder(),
-                        errorText:
-                            installmentsError, // Muestra el mensaje de error aquí
+                        errorText: installmentsError,
                         errorBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.red),
                         ),
@@ -280,8 +300,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                         setState(() {
                           if (installments != null && installments > 1) {
                             numberOfInstallments = installments;
-                            installmentsError =
-                                null; // Limpiar error si es válido
+                            installmentsError = null;
                           } else {
                             installmentsError = _validateInstallments(value);
                           }
@@ -291,9 +310,10 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                     ),
                     const SizedBox(height: 16),
                     if (totalToPay != null) ...[
-                      Text('Total a pagar: ${formatCurrency(totalToPay)}'),
                       Text(
-                          'Monto por cuota: ${formatCurrency(amountToPayPerInstallment)}'),
+                          '${context.l10n.totalToPay}${formatCurrency(totalToPay)}'),
+                      Text(
+                          '${context.l10n.amountPerInstallment}${formatCurrency(amountToPayPerInstallment)}'),
                     ],
                     const SizedBox(height: 16),
                     Row(
@@ -302,11 +322,10 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                         ElevatedButton(
                           onPressed: _confirmLoan,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Colors.teal, // Cambiar color a teal
+                            backgroundColor: Colors.teal,
                             foregroundColor: Colors.white,
                           ),
-                          child: const Text('Aceptar'),
+                          child: Text(context.l10n.acept),
                         ),
                         const SizedBox(width: 40),
                         ElevatedButton(
@@ -315,7 +334,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                             backgroundColor: Colors.red,
                             foregroundColor: Colors.white,
                           ),
-                          child: const Text('Cancelar'),
+                          child: Text(context.l10n.cancel),
                         ),
                       ],
                     ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Importa el paquete
+import 'package:shared_preferences/shared_preferences.dart';
 import 'register_screen.dart';
 import '../utils/auth.dart';
 import 'home_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,7 +21,7 @@ class LoginScreenState extends State<LoginScreen> {
   String? _passwordError;
   final AuthServices _authServices = AuthServices();
   bool _obscurePassword = true;
-  bool _rememberMe = false; // Variable para recordar credenciales
+  bool _rememberMe = false;
 
   bool _isValidEmail(String email) {
     final RegExp emailRegex = RegExp(
@@ -31,10 +33,9 @@ class LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCredentials(); // Cargar credenciales al iniciar
+    _loadCredentials();
   }
 
-  // Método para cargar las credenciales guardadas
   void _loadCredentials() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? email = prefs.getString('email');
@@ -50,7 +51,6 @@ class LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Método para guardar las credenciales
   void _saveCredentials() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (_rememberMe) {
@@ -75,42 +75,68 @@ class LoginScreenState extends State<LoginScreen> {
 
     if (email.isEmpty) {
       setState(() {
-        _emailError = 'El correo es obligatorio.';
+        _emailError = context.l10n.emptyField;
       });
       return;
     }
 
     if (!_isValidEmail(email)) {
       setState(() {
-        _emailError = 'El correo electrónico no es válido.';
+        _emailError = context.l10n.wrongEmail;
       });
       return;
     }
 
     if (password.isEmpty) {
       setState(() {
-        _passwordError = 'La contraseña es obligatoria.';
+        _passwordError = context.l10n.emptyField;
       });
       return;
     }
 
-    // Llamar al método de inicio de sesión
-    String? result =
-        await _authServices.signInEmailAndPassword(email, password);
-    if (result != null) {
-      setState(() {
-        _passwordError = result; // Muestra el mensaje de error específico
-      });
+    // Verificar la conexión a Internet
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      // Si no hay conexión, intenta iniciar sesión offline
+      User? user = await _authServices.signInOffline(email, password);
+      if (user == null) {
+        setState(() {
+          _passwordError = 'Error de conexión. No se pudo iniciar sesión.';
+        });
+      } else {
+        // Si se inicia sesión offline, guardar las credenciales
+        _saveCredentials();
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        }
+      }
     } else {
-      // Guardar credenciales si se seleccionó recordar
-      _saveCredentials();
-
-      // Inicio de sesión exitoso, navegar a la pantalla principal
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
+      // Si hay conexión, intenta iniciar sesión en línea
+      try {
+        String? result =
+            await _authServices.signInEmailAndPassword(email, password);
+        if (result != null) {
+          setState(() {
+            _passwordError = result;
+            _emailError = result;
+          });
+        } else {
+          _saveCredentials();
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          }
+        }
+      } catch (e) {
+        // Manejo de errores de conexión
+        setState(() {
+          _passwordError = 'Error de conexión. No se pudo iniciar sesión.';
+        });
       }
     }
   }
@@ -119,7 +145,7 @@ class LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Iniciar Sesión'),
+        title: Text(context.l10n.login),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
@@ -149,7 +175,7 @@ class LoginScreenState extends State<LoginScreen> {
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(
-                        labelText: 'Correo Electrónico',
+                        labelText: context.l10n.email,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Colors.teal),
@@ -169,7 +195,7 @@ class LoginScreenState extends State<LoginScreen> {
                     TextField(
                       controller: _passwordController,
                       decoration: InputDecoration(
-                        labelText: 'Contraseña',
+                        labelText: context.l10n.password,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Colors.teal),
@@ -189,8 +215,7 @@ class LoginScreenState extends State<LoginScreen> {
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscurePassword =
-                                  !_obscurePassword; // Alternar visibilidad
+                              _obscurePassword = !_obscurePassword;
                             });
                           },
                         ),
@@ -209,7 +234,7 @@ class LoginScreenState extends State<LoginScreen> {
                             });
                           },
                         ),
-                        const Text('Recordar credenciales'),
+                        Text(context.l10n.rememberMe),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -224,8 +249,8 @@ class LoginScreenState extends State<LoginScreen> {
                         padding: const EdgeInsets.symmetric(
                             vertical: 12, horizontal: 24),
                       ),
-                      child: const Text('Iniciar Sesión',
-                          style: TextStyle(fontSize: 16)),
+                      child: Text(context.l10n.login,
+                          style: const TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -239,8 +264,8 @@ class LoginScreenState extends State<LoginScreen> {
                                   builder: (context) => const RegisterScreen()),
                             );
                           },
-                          child: const Text('¿No tienes cuenta?',
-                              style: TextStyle(color: Colors.teal)),
+                          child: Text(context.l10n.noAccount,
+                              style: const TextStyle(color: Colors.teal)),
                         ),
                       ],
                     ),
