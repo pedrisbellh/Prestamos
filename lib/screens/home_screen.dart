@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
 import 'package:prestamos/models/company/company.dart';
-import 'package:prestamos/providers/client/client_provider_impl.dart';
 import 'package:prestamos/screens/user_panel_screen.dart';
 import 'package:prestamos/screens/create_company_screen.dart';
 import 'package:prestamos/screens/view_company_screen.dart';
@@ -24,10 +23,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  final clientProvider = ClientProviderImpl();
   final List<Client> clients = [];
 
   List<Client> filteredClients = [];
+
+  bool isLoading = true;
   bool isSearching = false;
   final TextEditingController searchController = TextEditingController();
 
@@ -50,13 +50,26 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadClients() async {
-    final fetchedClients =
-        await clientProvider.getAllClientsByUser(userId: userId!);
-    setState(() {
-      clients.clear();
-      clients.addAll(fetchedClients);
-      filteredClients = clients;
-    });
+    try {
+      if (userId != null) {
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('clients')
+            .where('userId', isEqualTo: userId)
+            .get();
+
+        setState(() {
+          clients.clear();
+          for (var doc in querySnapshot.docs) {
+            var data = doc.data() as Map<String, dynamic>;
+            clients.add(Client.fromJson(data));
+          }
+          isLoading = false;
+          filteredClients = clients;
+        });
+      }
+    } catch (e) {
+      _showSnackBar('Error al cargar clientes: $e');
+    }
   }
 
   void _showSnackBar(String message) {
@@ -580,41 +593,31 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: isSearching
-          ? filteredClients.isEmpty
-              ? Center(child: Text(context.l10n.noExistClient))
-              : ListView.builder(
-                  itemCount: filteredClients.length,
-                  itemBuilder: (context, index) {
-                    return _buildClientTile(filteredClients[index], index);
-                  },
-                )
-          : FutureBuilder(
-              future: clientProvider.getAllClientsByUser(
-                userId: userId!,
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
               ),
-              builder: (context, datas) {
-                switch (datas.connectionState) {
-                  case ConnectionState.waiting:
-                    return const Center(
-                        child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
-                    ));
-                  case ConnectionState.done:
-                    return datas.data!.isEmpty
-                        ? Center(child: Text(context.l10n.noFoundClients))
-                        : ListView.builder(
-                            itemCount: datas.data?.length,
-                            itemBuilder: (context, index) {
-                              return _buildClientTile(
-                                  datas.data![index], index);
-                            },
-                          );
-                  default:
-                    return const SizedBox.shrink();
-                }
-              },
-            ),
+            )
+          : isSearching
+              ? filteredClients.isEmpty
+                  ? Center(
+                      child: Text(context.l10n.noExistClient),
+                    )
+                  : ListView.builder(
+                      itemCount: filteredClients.length,
+                      itemBuilder: (context, index) {
+                        return _buildClientTile(filteredClients[index], index);
+                      },
+                    )
+              : clients.isEmpty
+                  ? Center(child: Text(context.l10n.noFoundClients))
+                  : ListView.builder(
+                      itemCount: clients.length,
+                      itemBuilder: (context, index) {
+                        return _buildClientTile(clients[index], index);
+                      },
+                    ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
