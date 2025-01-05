@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
-import '/models/user.dart';
+import '../models/user/user.dart';
 
 class UserPanelScreen extends StatelessWidget {
   const UserPanelScreen({super.key});
