@@ -52,10 +52,10 @@ class PrintScreenState extends State<PrintScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: ListView.builder(
-                        itemCount: 0, // Cambia esto según sea necesario
+                        itemCount: 0,
                         itemBuilder: (context, index) {
                           return ListTile(
-                            title: Text('Dispositivo $index'), // Cambia esto según sea necesario
+                            title: Text('Dispositivo $index'),
                             onTap: () {},
                           );
                         },
