@@ -1,14 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
 import 'package:prestamos/models/company/company.dart';
-import 'package:prestamos/screens/user_panel_screen.dart';
-import 'package:prestamos/screens/create_company_screen.dart';
-import 'package:prestamos/screens/view_company_screen.dart';
-import 'create_loan_screen.dart';
-import 'view_loan_screen.dart';
-import 'client_details_screen.dart';
 import '../utils/upper_case_text_formatter.dart';
 import '../utils/snack_bar_top.dart';
 import '../models/client/client.dart';
@@ -380,13 +375,8 @@ class HomeScreenState extends State<HomeScreen> {
           children: [
             IconButton(
               icon: const Icon(Icons.person),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ClientDetailsScreen(
-                    client: client,
-                  ),
-                ),
+              onPressed: () => context.push(
+                '/clientDetails/${client.id}',
               ),
             ),
             IconButton(
@@ -402,13 +392,7 @@ class HomeScreenState extends State<HomeScreen> {
                   if (querySnapshot.docs.isNotEmpty) {
                     _showSnackBar(context.l10n.existLoan);
                   } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            CreateLoanScreen(clientName: client.name),
-                      ),
-                    );
+                    context.push('/createLoan/${client.name}');
                   }
                 }).catchError((error) {
                   _showSnackBar(context.l10n.error);
@@ -429,14 +413,7 @@ class HomeScreenState extends State<HomeScreen> {
                   if (querySnapshot.docs.isNotEmpty) {
                     String loanId = querySnapshot.docs.first.id;
 
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ViewLoanScreen(
-                          loanId: loanId,
-                        ),
-                      ),
-                    );
+                    context.push('/viewLoan/$loanId');
                   } else {
                     _showSnackBar(context.l10n.noLoan);
                   }
@@ -494,7 +471,7 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> _logout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
-      Navigator.of(context).pushReplacementNamed('/');
+      context.go('/login');
     } catch (e) {
       _showSnackBar(context.l10n.error);
     }
@@ -548,28 +525,13 @@ class HomeScreenState extends State<HomeScreen> {
                   Company? company = await getCompanyFromFirestore(userId);
 
                   if (company != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ViewCompanyScreen(userId: userId),
-                      ),
-                    );
+                    context.push('/viewCompany/$userId');
                   } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CreateCompanyScreen(),
-                      ),
-                    );
+                    context.push('/createCompany');
                   }
                   break;
                 case 2:
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const UserPanelScreen(),
-                    ),
-                  );
+                  context.push('/userPanel');
                   break;
                 case 3:
                   _logout(context);

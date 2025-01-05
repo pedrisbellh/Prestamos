@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'register_screen.dart';
 import '../utils/auth.dart';
-import 'home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -107,10 +106,7 @@ class LoginScreenState extends State<LoginScreen> {
         // Si se inicia sesión offline, guardar las credenciales
         _saveCredentials();
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
+          context.go('/');
         }
       }
     } else {
@@ -126,10 +122,7 @@ class LoginScreenState extends State<LoginScreen> {
         } else {
           _saveCredentials();
           if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
+            context.go('/');
           }
         }
       } catch (e) {
@@ -258,11 +251,7 @@ class LoginScreenState extends State<LoginScreen> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const RegisterScreen()),
-                            );
+                            context.push('/register');
                           },
                           child: Text(context.l10n.noAccount,
                               style: const TextStyle(color: Colors.teal)),

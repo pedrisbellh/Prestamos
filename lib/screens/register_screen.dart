@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
 import '../utils/auth.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -99,7 +100,7 @@ class RegisterScreenState extends State<RegisterScreen> {
       });
     } else {
       // Registro exitoso
-      Navigator.pop(context);
+      context.go('/');
     }
   }
 
@@ -240,7 +241,7 @@ class RegisterScreenState extends State<RegisterScreen> {
                             vertical: 12, horizontal: 24),
                       ),
                       child: Text(context.l10n.save,
-                          style: TextStyle(fontSize: 16)),
+                          style: const TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 20),
                     Row(
@@ -248,10 +249,10 @@ class RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         TextButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            context.go('/login');
                           },
                           child: Text(context.l10n.account,
-                              style: TextStyle(color: Colors.teal)),
+                              style: const TextStyle(color: Colors.teal)),
                         ),
                       ],
                     ),

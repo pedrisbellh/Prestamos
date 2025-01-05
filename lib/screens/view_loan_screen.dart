@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
-import 'create_loan_screen.dart';
-import 'home_screen.dart';
 import '/utils/snack_bar_top.dart';
 import 'package:intl/intl.dart';
-import '/screens/print_screen.dart';
 
 class ViewLoanScreen extends StatefulWidget {
   final String loanId;
@@ -148,7 +146,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
         if (cuotasRestantes == 0) {
           _markLoanAsCompleted();
         }
-        _navigateToHomeScreen();
+        context.go('/');
       });
     } else {
       SnackBarTop.showTopSnackBar(context, context.l10n.changeCuote);
@@ -166,14 +164,6 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
     });
   }
 
-  void _navigateToHomeScreen() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-      (Route<dynamic> route) => false,
-    );
-  }
-
   Future<void> _renewLoan() async {
     try {
       await FirebaseFirestore.instance
@@ -181,11 +171,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
           .doc(widget.loanId)
           .update({'renovado': true});
       _showSnackBar(context.l10n.renewLoan);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) => CreateLoanScreen(clientName: clientName!)),
-      );
+      context.go('/createLoan/$clientName');
     } catch (e) {
       _showSnackBar(context.l10n.error);
     }
@@ -228,12 +214,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
           IconButton(
             icon: const Icon(Icons.print, color: Colors.white),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PrintScreen(),
-                ),
-              );
+              context.push('/print');
             },
           ),
         ],
@@ -276,7 +257,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                         const SizedBox(width: 20),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            context.go('/');
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
@@ -372,7 +353,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                             } else if (fechaNextPay == fechaUltimoPago) {
                               _confirmPayment();
                             } else {
-                              Navigator.pop(context);
+                              context.go('/');
                             }
                             //_confirmPayment();
                           },
@@ -387,7 +368,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                         const SizedBox(width: 50),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            context.go('/');
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,

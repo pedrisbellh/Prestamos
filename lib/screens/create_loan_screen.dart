@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
-import 'package:prestamos/screens/view_loan_screen.dart';
 import '../utils/snack_bar_top.dart';
 import '../utils/loan_calculator.dart';
 import '/services/firebase_service.dart';
@@ -66,17 +66,6 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
     SnackBarTop.showTopSnackBar(context, message);
   }
 
-  void _navigateToLoanDetails(String loanId) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ViewLoanScreen(
-          loanId: loanId,
-        ),
-      ),
-    );
-  }
-
   String? _validateAmount(String? value) {
     final amount = double.tryParse(value ?? '');
     if (amount == null) {
@@ -115,7 +104,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
   }
 
   void _cancelLoan() {
-    Navigator.pop(context);
+    context.go('/');
   }
 
   void _confirmLoan() async {
@@ -154,7 +143,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
 
       _showSnackBar(context.l10n.createdLoan);
 
-      _navigateToLoanDetails(loanId);
+      context.go('/viewLoan/$loanId');
     } catch (e) {
       _showSnackBar(context.l10n.error);
     }

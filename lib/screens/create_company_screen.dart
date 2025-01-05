@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
 import 'package:prestamos/services/firebase_service.dart';
 import '/utils/snack_bar_top.dart';
@@ -82,7 +83,7 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
   }
 
   void _cancel() {
-    Navigator.pop(context);
+    context.go('/');
   }
 
   final _formKey = GlobalKey<FormState>();
