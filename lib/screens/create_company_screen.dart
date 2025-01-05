@@ -146,7 +146,7 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
                         controller: rcnController,
                         decoration: InputDecoration(
                           labelText: context.l10n.rcn,
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 16),
