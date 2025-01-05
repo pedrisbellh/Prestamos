@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:prestamos/models/client/client.dart';
 import 'package:prestamos/models/company/company.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
@@ -51,8 +52,24 @@ Future<void> deleteClientFromFirestore(String clientName) async {
     print("Cliente eliminado: $clientName");
   } catch (e) {
     print("Error al eliminar cliente: $e");
-    throw e; // Lanza el error para manejarlo en la UI si es necesario
+    throw e;
   }
+}
+
+Future<Client?> getClientById(String clientId) async {
+  try {
+    final doc = await FirebaseFirestore.instance
+        .collection('clients')
+        .doc(clientId)
+        .get();
+
+    if (doc.exists) {
+      return Client.fromJson(doc.data()!);
+    }
+  } catch (e) {
+    print('Error al obtener el cliente: $e');
+  }
+  return null; // Retorna null si no se encuentra el cliente
 }
 
 Future<void> deleteLoanForClient(String clientName, String userId) async {
@@ -60,8 +77,7 @@ Future<void> deleteLoanForClient(String clientName, String userId) async {
     QuerySnapshot loanSnapshot = await FirebaseFirestore.instance
         .collection('loan')
         .where('clientName', isEqualTo: clientName)
-        .where('userId',
-            isEqualTo: userId) // Usar el userId pasado como parámetro
+        .where('userId', isEqualTo: userId)
         .get();
 
     for (var loanDoc in loanSnapshot.docs) {
@@ -76,7 +92,7 @@ Future<void> deleteLoanForClient(String clientName, String userId) async {
 
 Future<String> saveLoanToFirestore({
   required String clientName,
-  required String userId, // Agregar userId
+  required String userId,
   required double amount,
   required double interestRate,
   required int numberOfInstallments,
@@ -86,11 +102,12 @@ Future<String> saveLoanToFirestore({
   bool renovado = false,
 }) async {
   DateTime createdAt = DateTime.now();
+  DateTime fechaUltimoPago = DateTime.now();
 
   DocumentReference docRef =
       await FirebaseFirestore.instance.collection('loan').add({
     'clientName': clientName,
-    'userId': userId, // Guardar el userId
+    'userId': userId,
     'amount': amount,
     'interestRate': interestRate,
     'numberOfInstallments': numberOfInstallments,
@@ -98,24 +115,24 @@ Future<String> saveLoanToFirestore({
     'cuotasPagadas': 0,
     'cuotasRestantes': cuotasRestantes,
     'createdAt': createdAt,
+    'fechaUltimoPago': fechaUltimoPago,
     'completado': completado,
     'renovado': renovado,
   });
 
-  return docRef.id; // Devuelve el ID del préstamo
+  return docRef.id;
 }
 
 Future<void> addCompanyToFirestore({
   required String name,
   required String address,
   required String phone,
-  String? rcn, // RCN es opcional
-  required String userId, // Agregar el ID del usuario
+  String? rcn,
+  required String userId,
 }) async {
   CollectionReference collectionReferenceCompany = db.collection('company');
 
   try {
-    // Verificar si el usuario ya tiene una empresa
     QuerySnapshot existingCompany = await collectionReferenceCompany
         .where('userId', isEqualTo: userId)
         .get();
@@ -127,13 +144,13 @@ Future<void> addCompanyToFirestore({
       'name': name,
       'address': address,
       'phone': phone,
-      'rcn': rcn, // Puede ser null si no se proporciona
-      'userId': userId, // Guardar el ID del usuario
+      'rcn': rcn,
+      'userId': userId,
     });
     print("Empresa agregada a Firestore: $name");
   } catch (e) {
     print("Error al agregar empresa a Firestore: $e");
-    throw e; // Lanza el error para manejarlo en la UI si es necesario
+    throw e;
   }
 }
 
@@ -152,7 +169,7 @@ Future<Company?> getCompanyFromFirestore(String userId) async {
   } catch (e) {
     print("Error al obtener la empresa: $e");
   }
-  return null; // Retorna null si no se encuentra la empresa
+  return null;
 }
 
 Future<void> deleteCompanyFromFirestore(String userId) async {
@@ -160,12 +177,10 @@ Future<void> deleteCompanyFromFirestore(String userId) async {
       FirebaseFirestore.instance.collection('company');
 
   try {
-    // Buscar la empresa del usuario
     QuerySnapshot querySnapshot = await collectionReferenceCompany
         .where('userId', isEqualTo: userId)
         .get();
     if (querySnapshot.docs.isNotEmpty) {
-      // Eliminar la empresa
       await collectionReferenceCompany
           .doc(querySnapshot.docs.first.id)
           .delete();
@@ -175,6 +190,6 @@ Future<void> deleteCompanyFromFirestore(String userId) async {
     }
   } catch (e) {
     print("Error al eliminar la empresa: $e");
-    throw e; // Lanza el error para manejarlo en la UI si es necesario
+    throw e;
   }
 }
