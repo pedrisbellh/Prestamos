@@ -3,8 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/auth.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -93,43 +91,19 @@ class LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // Verificar la conexión a Internet
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.none) {
-      // Si no hay conexión, intenta iniciar sesión offline
-      User? user = await _authServices.signInOffline(email, password);
-      if (user == null) {
-        setState(() {
-          _passwordError = 'Error de conexión. No se pudo iniciar sesión.';
-        });
-      } else {
-        // Si se inicia sesión offline, guardar las credenciales
-        _saveCredentials();
-        if (mounted) {
-          context.go('/');
-        }
-      }
+    // Llamar al método de inicio de sesión
+    String? result =
+        await _authServices.signInEmailAndPassword(email, password);
+    if (result != null) {
+      // Si hay un mensaje de error, lo mostramos
+      setState(() {
+        _passwordError = result; // Muestra el mensaje de error específico
+      });
     } else {
-      // Si hay conexión, intenta iniciar sesión en línea
-      try {
-        String? result =
-            await _authServices.signInEmailAndPassword(email, password);
-        if (result != null) {
-          setState(() {
-            _passwordError = result;
-            _emailError = result;
-          });
-        } else {
-          _saveCredentials();
-          if (mounted) {
-            context.go('/');
-          }
-        }
-      } catch (e) {
-        // Manejo de errores de conexión
-        setState(() {
-          _passwordError = 'Error de conexión. No se pudo iniciar sesión.';
-        });
+      // Inicio de sesión exitoso, navegar a la pantalla principal
+      _saveCredentials();
+      if (mounted) {
+        context.go('/');
       }
     }
   }
