@@ -36,7 +36,7 @@ void main() async {
 }
 
 final GoRouter _router = GoRouter(
-  initialLocation: "/",
+  initialLocation: "/login",
   routes: <RouteBase>[
     GoRoute(
       path: '/',
@@ -150,7 +150,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Prestamos',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.teal,
       ),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

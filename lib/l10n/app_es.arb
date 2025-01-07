@@ -91,5 +91,6 @@
   "clientNotFound": "Cliente no encontrado o no pertenece al usuario actual",
   "existLoan": "Ya existe un préstamo para ese cliente",
   "noLoan": "No se encontró ningún préstamo para ese cliente",
-  "print": "Imprimir recibo"
+  "print": "Imprimir recibo",
+  "invalidId": "ID no válido"
 }

@@ -236,9 +236,14 @@ class HomeScreenState extends State<HomeScreen> {
                   _buildNumberField(
                     controller: identityCardController,
                     hintText: context.l10n.clientId,
-                    validator: (value) => value == null || value.isEmpty
-                        ? context.l10n.emptyField
-                        : null,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return context.l10n.emptyField;
+                      } else if (value.length < 8) {
+                        return context.l10n.invalidId;
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 20),
                   Text(context.l10n.emergencyContact,
