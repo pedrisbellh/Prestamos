@@ -9,6 +9,7 @@ import 'package:prestamos/blocs/client/client_state.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
 import 'package:prestamos/models/company/company.dart';
 import 'package:prestamos/repositories/client_repository.dart';
+import 'package:prestamos/utils/validators/client_validator.dart';
 import '../utils/upper_case_text_formatter.dart';
 import '../utils/snack_bar_top.dart';
 import '../models/client/client.dart';
@@ -64,22 +65,6 @@ class HomeScreenState extends State<HomeScreen> {
     searchController.dispose();
     clientBloc.close();
     super.dispose();
-  }
-
-  String? _validateName(String? value) {
-    if (value == null || value.trim().split(' ').length < 3) {
-      return context.l10n.fullName;
-    }
-    return null;
-  }
-
-  String? _validatePhone(String? value) {
-    final phoneRegex =
-        RegExp(r'^\+?[0-9]{8,15}$'); // Permitir números con código de país
-    if (value == null || !phoneRegex.hasMatch(value)) {
-      return context.l10n.wrongPhone;
-    }
-    return null;
   }
 
   Widget _buildTextField({
@@ -185,13 +170,15 @@ class HomeScreenState extends State<HomeScreen> {
                   _buildTextField(
                     controller: clientNameController,
                     hintText: context.l10n.fullName,
-                    validator: _validateName,
+                    validator: (value) =>
+                        ClientValidation.validateName(value, context),
                   ),
                   const SizedBox(height: 10),
                   _buildNumberField(
                     controller: phoneNumberController,
                     hintText: context.l10n.telephone,
-                    validator: _validatePhone,
+                    validator: (value) =>
+                        ClientValidation.validatePhone(value, context),
                   ),
                   const SizedBox(height: 10),
                   _buildMixtField(
@@ -205,14 +192,8 @@ class HomeScreenState extends State<HomeScreen> {
                   _buildNumberField(
                     controller: identityCardController,
                     hintText: context.l10n.clientId,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return context.l10n.emptyField;
-                      } else if (value.length < 8) {
-                        return context.l10n.invalidId;
-                      }
-                      return null;
-                    },
+                    validator: (value) =>
+                        ClientValidation.validateIdentityCard(value, context),
                   ),
                   const SizedBox(height: 20),
                   Text(context.l10n.emergencyContact,
@@ -222,13 +203,15 @@ class HomeScreenState extends State<HomeScreen> {
                   _buildTextField(
                     controller: emergencyContactNameController,
                     hintText: context.l10n.fullName,
-                    validator: _validateName,
+                    validator: (value) =>
+                        ClientValidation.validateName(value, context),
                   ),
                   const SizedBox(height: 10),
                   _buildNumberField(
                     controller: emergencyContactPhoneController,
                     hintText: context.l10n.telephone,
-                    validator: _validatePhone,
+                    validator: (value) =>
+                        ClientValidation.validatePhone(value, context),
                   ),
                 ],
               ),
