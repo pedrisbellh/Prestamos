@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:prestamos/data/utils/validators/loan_validator.dart';
 import 'package:prestamos/ui/extensions/build_context_extension.dart';
 import '../../../data/utils/snack_bar_top.dart';
 import '../../../data/utils/loan_calculator.dart';
@@ -66,53 +67,19 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
     SnackBarTop.showTopSnackBar(context, message);
   }
 
-  String? _validateAmount(String? value) {
-    final amount = double.tryParse(value ?? '');
-    if (amount == null) {
-      return context.l10n.emptyField;
-    } else if (amount <= 1) {
-      return context.l10n.invalidAmount;
-    }
-    return null;
-  }
-
-  String? _validateInterestRate(String? value) {
-    final interest = double.tryParse(value ?? '');
-    if (interest == null) {
-      return context.l10n.emptyField;
-    } else if (interest <= 1) {
-      return context.l10n.invalidAmount;
-    }
-    return null;
-  }
-
-  String? _validatePaymentFrequency(String? value) {
-    if (value == null || value.isEmpty) {
-      return context.l10n.emptyField;
-    }
-    return null;
-  }
-
-  String? _validateInstallments(String? value) {
-    final installments = int.tryParse(value ?? '');
-    if (installments == null) {
-      return context.l10n.emptyField;
-    } else if (installments <= 1) {
-      return context.l10n.invalidAmount;
-    }
-    return null;
-  }
-
   void _cancelLoan() {
     context.go('/');
   }
 
   void _confirmLoan() async {
-    final amountError = _validateAmount(_amountController.text);
-    final interestError = _validateInterestRate(interestRateController.text);
-    final installmentsError =
-        _validateInstallments(numberOfInstallments.toString());
-    final paymentFrequencyError = _validatePaymentFrequency(paymentFrequency);
+    final amountError =
+        LoanValidation.validateAmount(_amountController.text, context);
+    final interestError = LoanValidation.validateInterestRate(
+        interestRateController.text, context);
+    final installmentsError = LoanValidation.validateInstallments(
+        numberOfInstallments.toString(), context);
+    final paymentFrequencyError =
+        LoanValidation.validatePaymentFrequency(paymentFrequency, context);
 
     setState(() {
       this.amountError = amountError;
@@ -206,7 +173,8 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                       onChanged: (value) {
                         calculateInstallment();
                         setState(() {
-                          amountError = _validateAmount(value);
+                          amountError =
+                              LoanValidation.validateAmount(value, context);
                         });
                       },
                     ),
@@ -231,7 +199,8 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                       onChanged: (value) {
                         calculateInstallment();
                         setState(() {
-                          interestError = _validateInterestRate(value);
+                          interestError = LoanValidation.validateInterestRate(
+                              value, context);
                         });
                       },
                     ),
@@ -266,7 +235,8 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                         setState(() {
                           paymentFrequency = newValue!;
                           paymentFrequencyError =
-                              _validatePaymentFrequency(paymentFrequency);
+                              LoanValidation.validatePaymentFrequency(
+                                  paymentFrequency, context);
                         });
                       },
                     ),
@@ -291,7 +261,9 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                             numberOfInstallments = installments;
                             installmentsError = null;
                           } else {
-                            installmentsError = _validateInstallments(value);
+                            installmentsError =
+                                LoanValidation.validateInstallments(
+                                    value, context);
                           }
                         });
                         calculateInstallment();
