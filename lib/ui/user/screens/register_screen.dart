@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prestamos/ui/extensions/build_context_extension.dart';
-import '../../../data/utils/auth.dart';
+import '../../../data/services/auth_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class RegisterScreen extends StatefulWidget {

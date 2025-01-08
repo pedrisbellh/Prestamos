@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prestamos/ui/extensions/build_context_extension.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../data/utils/auth.dart';
+import '../../../data/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

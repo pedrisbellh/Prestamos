@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:prestamos/data/utils/validators/company_validator.dart';
+import 'package:prestamos/ui/widgets/validators/company_validator.dart';
 import 'package:prestamos/ui/company/bloc/company_bloc.dart';
 import 'package:prestamos/ui/company/bloc/company_event.dart';
 import 'package:prestamos/ui/company/bloc/company_state.dart';
 import 'package:prestamos/ui/extensions/build_context_extension.dart';
-import '../../../data/utils/snack_bar_top.dart';
+import '../../widgets/utils/snack_bar_top.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CreateCompanyScreen extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prestamos/ui/extensions/build_context_extension.dart';
-import '../../../data/utils/snack_bar_top.dart';
+import '../../widgets/utils/snack_bar_top.dart';
 import 'package:intl/intl.dart';
 
 class ViewLoanScreen extends StatefulWidget {
