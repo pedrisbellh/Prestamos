@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:prestamos/data/repositories/client_repository.dart';
 import 'package:prestamos/data/repositories/company_repository.dart';
 import 'package:prestamos/ui/client/bloc/client_bloc.dart';
-import 'package:prestamos/ui/client/bloc/client_event.dart';
 import 'package:prestamos/ui/client/screens/client_details_screen.dart';
 import 'package:prestamos/ui/company/bloc/company_bloc.dart';
 import 'package:prestamos/ui/company/screens/create_company_screen.dart';
@@ -95,7 +94,6 @@ final GoRouter _router = GoRouter(
       path: '/clientDetails/:clientId',
       builder: (BuildContext context, GoRouterState state) {
         final String clientId = state.pathParameters['clientId']!;
-        context.read<ClientBloc>().add(LoadClientDetails(clientId));
         return ClientDetailsScreen(clientId: clientId);
       },
     ),
