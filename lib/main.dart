@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:prestamos/data/repositories/company_repository.dart';
 import 'package:prestamos/domain/models/client/client.dart';
 import 'package:prestamos/ui/client/screens/client_details_screen.dart';
+import 'package:prestamos/ui/company/bloc/company_bloc.dart';
 import 'package:prestamos/ui/company/screens/create_company_screen.dart';
 import 'package:prestamos/ui/loan/screens/create_loan_screen.dart';
 import 'package:prestamos/ui/loan/screens/print_screen.dart';
@@ -10,6 +13,7 @@ import 'package:prestamos/ui/user/screens/register_screen.dart';
 import 'package:prestamos/ui/user/screens/user_panel_screen.dart';
 import 'package:prestamos/ui/company/screens/view_company_screen.dart';
 import 'package:prestamos/ui/loan/screens/view_loan_screen.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'ui/user/screens/login_screen.dart';
 import 'ui/client/screens/home_screen.dart';
@@ -32,7 +36,18 @@ void main() async {
     return;
   }
 
-  runApp(const MainApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => CompanyBloc(CompanyRepository()),
+        ),
+
+        // Otros providers
+      ],
+      child: const MainApp(),
+    ),
+  );
 }
 
 final GoRouter _router = GoRouter(
