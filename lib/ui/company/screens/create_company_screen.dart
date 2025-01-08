@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:prestamos/data/utils/validators/company_validator.dart';
 import 'package:prestamos/ui/extensions/build_context_extension.dart';
 import 'package:prestamos/data/services/firebase_service.dart';
 import '../../../data/utils/snack_bar_top.dart';
@@ -37,32 +38,13 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
     SnackBarTop.showTopSnackBar(context, message);
   }
 
-  String? _validateName(String? value) {
-    if (value == null || value.isEmpty) {
-      return context.l10n.emptyField;
-    }
-    return null;
-  }
-
-  String? _validateAddress(String? value) {
-    if (value == null || value.isEmpty) {
-      return context.l10n.emptyField;
-    }
-    return null;
-  }
-
-  String? _validatePhone(String? value) {
-    if (value == null || value.isEmpty) {
-      return context.l10n.emptyField;
-    }
-    return null;
-  }
-
   void _saveCompany() {
     setState(() {
-      nameError = _validateName(nameController.text);
-      addressError = _validateAddress(addressController.text);
-      phoneError = _validatePhone(phoneController.text);
+      nameError = CompanyValidation.validateName(nameController.text, context);
+      addressError =
+          CompanyValidation.validateAddress(addressController.text, context);
+      phoneError =
+          CompanyValidation.validatePhone(phoneController.text, context);
     });
 
     if (nameError == null && addressError == null && phoneError == null) {
@@ -118,7 +100,8 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
                           labelText: context.l10n.name,
                           border: const OutlineInputBorder(),
                         ),
-                        validator: _validateName,
+                        validator: (value) =>
+                            CompanyValidation.validateName(value, context),
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -127,7 +110,8 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
                           labelText: context.l10n.direction,
                           border: const OutlineInputBorder(),
                         ),
-                        validator: _validateAddress,
+                        validator: (value) =>
+                            CompanyValidation.validateAddress(value, context),
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -140,7 +124,8 @@ class _CreateCompanyScreenState extends State<CreateCompanyScreen> {
                         inputFormatters: <TextInputFormatter>[
                           FilteringTextInputFormatter.digitsOnly,
                         ],
-                        validator: _validatePhone,
+                        validator: (value) =>
+                            CompanyValidation.validatePhone(value, context),
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
