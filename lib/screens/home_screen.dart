@@ -1,9 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:prestamos/blocs/client/client_bloc.dart';
+import 'package:prestamos/blocs/client/client_event.dart';
+import 'package:prestamos/blocs/client/client_state.dart';
 import 'package:prestamos/extensions/build_context_extension.dart';
 import 'package:prestamos/models/company/company.dart';
+import 'package:prestamos/repositories/client_repository.dart';
 import '../utils/upper_case_text_formatter.dart';
 import '../utils/snack_bar_top.dart';
 import '../models/client/client.dart';
@@ -18,9 +23,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  final List<Client> clients = [];
+  late ClientBloc clientBloc;
 
-  List<Client> filteredClients = [];
+  final List<Client> clients = [];
 
   bool isLoading = true;
   bool isSearching = false;
@@ -41,50 +46,13 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     userId = _auth.currentUser?.uid;
-    _loadClients();
-  }
-
-  Future<void> _loadClients() async {
-    try {
-      if (userId != null) {
-        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-            .collection('clients')
-            .where('userId', isEqualTo: userId)
-            .get();
-
-        setState(() {
-          clients.clear();
-          for (var doc in querySnapshot.docs) {
-            var data = doc.data() as Map<String, dynamic>;
-            clients.add(Client.fromJson(data));
-          }
-          isLoading = false;
-          filteredClients = clients;
-        });
-      }
-    } catch (e) {
-      _showSnackBar('Error al cargar clientes: $e');
-    }
+    clientBloc =
+        ClientBloc(ClientRepository(FirebaseFirestore.instance), userId!);
+    clientBloc.add(LoadClients());
   }
 
   void _showSnackBar(String message) {
     SnackBarTop.showTopSnackBar(context, message);
-  }
-
-  void _filterClients(String query) {
-    if (query.isEmpty) {
-      setState(() {
-        isSearching = false;
-        filteredClients = clients;
-      });
-    } else {
-      setState(() {
-        isSearching = true;
-        filteredClients = clients.where((client) {
-          return client.name.toLowerCase().contains(query.toLowerCase());
-        }).toList();
-      });
-    }
   }
 
   @override
@@ -94,6 +62,7 @@ class HomeScreenState extends State<HomeScreen> {
     emergencyContactNameController.dispose();
     emergencyContactPhoneController.dispose();
     searchController.dispose();
+    clientBloc.close();
     super.dispose();
   }
 
@@ -190,7 +159,7 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void addClient() {
+  void _addClientDialog() {
     clientNameController.clear();
     phoneNumberController.clear();
     emergencyContactNameController.clear();
@@ -306,8 +275,8 @@ class HomeScreenState extends State<HomeScreen> {
                         );
 
                         Navigator.of(context).pop();
+                        clientBloc.add(LoadClients());
                         _showSnackBar(context.l10n.clientAdd);
-                        await _loadClients();
                       } else {
                         _showSnackBar(context.l10n.existingClient);
                       }
@@ -336,33 +305,6 @@ class HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-  }
-
-  void removeClient(String clientName) async {
-    try {
-      var clientDoc = await FirebaseFirestore.instance
-          .collection('clients')
-          .where('name', isEqualTo: clientName)
-          .where('userId', isEqualTo: userId)
-          .get();
-
-      if (clientDoc.docs.isNotEmpty) {
-        String clientId = clientDoc.docs.first.id;
-
-        await deleteLoanForClient(clientName, userId!);
-
-        await deleteClientFromFirestore(clientId);
-
-        setState(() {
-          clients.removeWhere((client) => client.name == clientName);
-        });
-        _showSnackBar(context.l10n.clientDeleted);
-      } else {
-        _showSnackBar(context.l10n.clientNotFound);
-      }
-    } catch (e) {
-      _showSnackBar(context.l10n.error);
-    }
   }
 
   Widget _buildClientTile(Client client, int index) {
@@ -440,7 +382,7 @@ class HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 10),
                         TextButton(
                           onPressed: () {
-                            removeClient(client.name);
+                            clientBloc.add(RemoveClient(client.name));
                             Navigator.of(context).pop();
                           },
                           style: TextButton.styleFrom(
@@ -490,7 +432,7 @@ class HomeScreenState extends State<HomeScreen> {
             ? TextField(
                 controller: searchController,
                 onChanged: (value) {
-                  _filterClients(value);
+                  clientBloc.add(SearchClients(value));
                 },
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
@@ -513,7 +455,7 @@ class HomeScreenState extends State<HomeScreen> {
                 if (isSearching) {
                   isSearching = false;
                   searchController.clear();
-                  filteredClients = clients;
+                  clientBloc.add(LoadClients());
                 } else {
                   isSearching = true;
                 }
@@ -560,36 +502,44 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
-              ),
-            )
-          : isSearching
-              ? filteredClients.isEmpty
-                  ? Center(
-                      child: Text(context.l10n.noExistClient),
-                    )
-                  : ListView.builder(
-                      itemCount: filteredClients.length,
-                      itemBuilder: (context, index) {
-                        return _buildClientTile(filteredClients[index], index);
-                      },
-                    )
-              : clients.isEmpty
-                  ? Center(child: Text(context.l10n.noFoundClients))
-                  : ListView.builder(
-                      itemCount: clients.length,
-                      itemBuilder: (context, index) {
-                        return _buildClientTile(clients[index], index);
-                      },
-                    ),
+      body: BlocBuilder<ClientBloc, ClientState>(
+        bloc: clientBloc,
+        builder: (context, state) {
+          if (state is ClientLoading) {
+            return const Center(
+                child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+            ));
+          } else if (state is ClientLoaded) {
+            final clients = state.clients;
+
+            final filteredClients = isSearching
+                ? clients
+                    .where((client) => client.name
+                        .toLowerCase()
+                        .contains(searchController.text.toLowerCase()))
+                    .toList()
+                : clients;
+
+            return filteredClients.isEmpty
+                ? Center(child: Text(context.l10n.noExistClient))
+                : ListView.builder(
+                    itemCount: filteredClients.length,
+                    itemBuilder: (context, index) {
+                      return _buildClientTile(filteredClients[index], index);
+                    },
+                  );
+          } else if (state is ClientError) {
+            return Center(child: Text(state.message));
+          }
+          return Center(child: Text(context.l10n.noFoundClients));
+        },
+      ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
-            onPressed: addClient,
+            onPressed: _addClientDialog,
             backgroundColor: Colors.teal,
             foregroundColor: Colors.white,
             heroTag: 'add_client',
