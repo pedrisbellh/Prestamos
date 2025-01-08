@@ -34,3 +34,12 @@ class SearchClients extends ClientEvent {
   @override
   List<Object> get props => [query];
 }
+
+class LoadClientDetails extends ClientEvent {
+  final String clientId;
+
+  LoadClientDetails(this.clientId);
+
+  @override
+  List<Object> get props => [clientId];
+}

@@ -9,7 +9,7 @@ class ClientRepository {
   Future<List<Client>> fetchClients(String userId) async {
     QuerySnapshot querySnapshot = await firestore
         .collection('clients')
-        .where('userId', isEqualTo: userId) // Filtra por userId
+        .where('userId', isEqualTo: userId)
         .get();
     return querySnapshot.docs
         .map((doc) => Client.fromJson(doc.data() as Map<String, dynamic>))
@@ -24,7 +24,7 @@ class ClientRepository {
     QuerySnapshot querySnapshot = await firestore
         .collection('clients')
         .where('name', isEqualTo: clientName)
-        .where('userId', isEqualTo: userId) // Filtra por userId
+        .where('userId', isEqualTo: userId)
         .get();
 
     if (querySnapshot.docs.isNotEmpty) {
@@ -32,6 +32,16 @@ class ClientRepository {
       await firestore.collection('clients').doc(clientId).delete();
     } else {
       throw Exception('Cliente no encontrado o no autorizado para eliminar.');
+    }
+  }
+
+  Future<Client> getClientById(String clientId) async {
+    DocumentSnapshot doc =
+        await firestore.collection('clients').doc(clientId).get();
+    if (doc.exists) {
+      return Client.fromJson(doc.data() as Map<String, dynamic>);
+    } else {
+      throw Exception('Cliente no encontrado');
     }
   }
 }

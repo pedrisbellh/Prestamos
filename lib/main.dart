@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:prestamos/data/repositories/client_repository.dart';
 import 'package:prestamos/data/repositories/company_repository.dart';
-import 'package:prestamos/domain/models/client/client.dart';
+import 'package:prestamos/ui/client/bloc/client_bloc.dart';
+import 'package:prestamos/ui/client/bloc/client_event.dart';
 import 'package:prestamos/ui/client/screens/client_details_screen.dart';
 import 'package:prestamos/ui/company/bloc/company_bloc.dart';
 import 'package:prestamos/ui/company/screens/create_company_screen.dart';
@@ -41,6 +43,10 @@ void main() async {
       providers: [
         BlocProvider(
           create: (context) => CompanyBloc(CompanyRepository()),
+        ),
+        BlocProvider(
+          create: (context) => ClientBloc(
+              ClientRepository(FirebaseFirestore.instance), 'userId'),
         ),
 
         // Otros providers
@@ -89,24 +95,8 @@ final GoRouter _router = GoRouter(
       path: '/clientDetails/:clientId',
       builder: (BuildContext context, GoRouterState state) {
         final String clientId = state.pathParameters['clientId']!;
-        return FutureBuilder<Client?>(
-          future: _getClientById(clientId),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                  child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
-              ));
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData) {
-              return const Center(child: Text('Cliente no encontrado'));
-            } else {
-              final client = snapshot.data!;
-              return ClientDetailsScreen(client: client);
-            }
-          },
-        );
+        context.read<ClientBloc>().add(LoadClientDetails(clientId));
+        return ClientDetailsScreen(clientId: clientId);
       },
     ),
     GoRoute(
@@ -143,22 +133,6 @@ final GoRouter _router = GoRouter(
     );
   },
 );
-
-Future<Client?> _getClientById(String clientId) async {
-  try {
-    final doc = await FirebaseFirestore.instance
-        .collection('clients')
-        .doc(clientId)
-        .get();
-
-    if (doc.exists) {
-      return Client.fromJson(doc.data()!);
-    }
-  } catch (e) {
-    print('Error al obtener el cliente: $e');
-  }
-  return null;
-}
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});

@@ -48,5 +48,17 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
         emit(ClientLoaded(filteredClients));
       }
     });
+
+    on<LoadClientDetails>((event, emit) async {
+      emit(ClientLoading());
+
+      try {
+        final client = await clientRepository.getClientById(event.clientId);
+
+        emit(ClientDetailsLoaded(client));
+      } catch (e) {
+        emit(ClientError('Error al cargar los detalles del cliente: $e'));
+      }
+    });
   }
 }

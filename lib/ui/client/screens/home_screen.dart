@@ -305,9 +305,11 @@ class HomeScreenState extends State<HomeScreen> {
           children: [
             IconButton(
               icon: const Icon(Icons.person),
-              onPressed: () => context.push(
-                '/clientDetails/${client.id}',
-              ),
+              onPressed: () {
+                final clientId = client.id;
+                context.read<ClientBloc>().add(LoadClientDetails(clientId!));
+                context.push('/clientDetails/$clientId');
+              },
             ),
             IconButton(
               icon: const Icon(Icons.account_balance),

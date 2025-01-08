@@ -27,3 +27,12 @@ class ClientError extends ClientState {
   @override
   List<Object> get props => [message];
 }
+
+class ClientDetailsLoaded extends ClientState {
+  final Client client;
+
+  ClientDetailsLoaded(this.client);
+
+  @override
+  List<Object> get props => [client];
+}
