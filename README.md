@@ -1,20 +1,35 @@
 # PayMe
 
 ## Descripción
-PayMe es una aplicación Flutter que permite a los usuarios gestionar sus préstamos de manera eficiente. La aplicación ofrece funcionalidades para crear, eliminar y ver información de los clientes, así como para crear, actualizar y visualizar los préstamos asociados a cada cliente.
+**PayMe** es una aplicación móvil desarrollada con Flutter que permite a los usuarios gestionar sus préstamos de manera eficiente y sencilla. La aplicación ofrece una variedad de funcionalidades que facilitan la creación, visualización, eliminación y búsqueda de clientes, así como la gestión de préstamos asociados a cada cliente.
 
 ## Características
-- **Crear Cliente**: Permite a los usuarios registrar nuevos clientes con detalles como nombre y apellidos, teléfono, número de identidad y dirección, así como el nombre y apellidos, teléfono y número de identidad de un "contacto de emergencia", quien se hará responsable del préstamo en caso de que ocurra alguna situación con el cliente.
-- **Eliminar Cliente**: Permite a los usuarios eliminar un cliente específico, eliminando así todos los préstamos asociados a ese cliente.
-- **Ver Cliente**: Permite a los usuarios ver la información de cada cliente.
-  
-- **Crear Préstamos**: Permite a los usuarios registrar nuevos préstamos con detalles como monto, tasa de interés, frecuencia de pago y cantidad de cuotas.
-- **Actualizar Préstamos**: Permite al usuario actualizar la cantidad de cuotas pagadas del préstamo.
-- **Visualizar Préstamo**: Permite a los usuarios visualizar los detalles del préstamo.
-  
-- **Interfaz Intuitiva**: Diseño amigable y fácil de usar.
+
+### Gestión de Clientes
+- **Crear Cliente**: Registra nuevos clientes con información detallada, incluyendo nombre, apellidos, teléfono, número de identidad y dirección. También se puede añadir un "contacto de emergencia" que será responsable del préstamo en caso de que surja alguna situación con el cliente.
+- **Eliminar Cliente**: Permite eliminar un cliente específico de la base de datos.
+- **Ver Cliente**: Muestra la información completa de cada cliente registrado.
+- **Buscar Cliente**: Facilita la búsqueda de un cliente específico por su nombre.
+
+### Gestión de Préstamos
+- **Crear Préstamo**: Registra nuevos préstamos con detalles como monto, tasa de interés, frecuencia de pago y cantidad de cuotas.
+- **Actualizar Préstamo**: Permite actualizar la cantidad de cuotas pagadas de un préstamo existente.
+- **Visualizar Préstamo**: Muestra los detalles completos de un préstamo específico.
+- **Eliminar Préstamo**: Permite eliminar un préstamo de la base de datos.
+
+### Gestión de Empresas
+- **Crear Empresa**: Registra una empresa prestamista, asociando los préstamos a esta entidad.
+- **Ver Empresa**: Muestra la información de la empresa registrada.
+- **Editar Empresa**: Permite modificar los datos de la empresa, como dirección, nombre, teléfono y RCN (Registro de Contribuyente Nacional).
+
+### Panel de Usuario
+- **Información de Cuenta**: Proporciona un resumen de la cuenta del usuario, incluyendo el total de clientes, total de préstamos, cantidad de préstamos terminados y renovados.
+
+### Interfaz Intuitiva
+- **Diseño Amigable**: La aplicación cuenta con una interfaz fácil de usar, diseñada para mejorar la experiencia del usuario.
 
 ## Tecnologías Utilizadas
-- **Flutter**: Framework para construir la interfaz de usuario.
-- **Dart**: Lenguaje de programación utilizado en la aplicación.
-- **Firebase**: Para la gestión de datos en tiempo real.
+- **Flutter**: Framework para construir la interfaz de usuario de la aplicación.
+- **Dart**: Lenguaje de programación utilizado para el desarrollo de la aplicación.
+- **Firebase**: Plataforma utilizada para la gestión de datos en tiempo real y autenticación de usuarios.
+- **Bloc**: Patrón de gestión de estado que ayuda a separar la lógica de negocio de la interfaz de usuario.
