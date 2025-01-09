@@ -1,13 +1,15 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:prestamos/ui/loan/bloc/loan_bloc.dart';
+import 'package:prestamos/ui/loan/bloc/loan_event.dart';
+import 'package:prestamos/ui/loan/bloc/loan_state.dart';
 import 'package:prestamos/ui/widgets/validators/loan_validator.dart';
 import 'package:prestamos/ui/extensions/build_context_extension.dart';
 import '../../widgets/utils/snack_bar_top.dart';
 import '../../widgets/utils/loan_calculator.dart';
-import '../../../data/services/firebase_service.dart';
 
 class CreateLoanScreen extends StatefulWidget {
   final String clientName;
@@ -95,25 +97,17 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
       return;
     }
 
-    try {
-      String loanId = await saveLoanToFirestore(
-        clientName: widget.clientName,
-        userId: FirebaseAuth.instance.currentUser!.uid,
-        amount: double.parse(_amountController.text),
-        interestRate: double.parse(interestRateController.text),
-        numberOfInstallments: numberOfInstallments,
-        paymentFrequency: paymentFrequency,
-        cuotasRestantes: numberOfInstallments,
-        completado: false,
-        renovado: false,
-      );
+    // Usar el BLoC para agregar el préstamo
 
-      _showSnackBar(context.l10n.createdLoan);
+    final loanBloc = context.read<LoanBloc>();
 
-      context.go('/viewLoan/$loanId');
-    } catch (e) {
-      _showSnackBar(context.l10n.error);
-    }
+    loanBloc.add(AddLoan(
+      widget.clientName,
+      double.parse(_amountController.text),
+      double.parse(interestRateController.text),
+      numberOfInstallments,
+      paymentFrequency,
+    ));
   }
 
   String formatCurrency(double? value) {
@@ -130,176 +124,187 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextField(
-                      controller: clientNameController,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.fullName,
-                        border: const OutlineInputBorder(),
-                      ),
-                      readOnly: true,
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _amountController,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.amount,
-                        border: const OutlineInputBorder(),
-                        errorText: amountError,
-                        errorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
+      body: BlocListener<LoanBloc, LoanState>(
+        listener: (context, state) {
+          if (state is LoanSuccess) {
+            _showSnackBar(state.message);
+
+            context.go('/');
+          } else if (state is LoanError) {
+            _showSnackBar(state.message);
+          }
+        },
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: clientNameController,
+                        decoration: InputDecoration(
+                          labelText: context.l10n.fullName,
+                          border: const OutlineInputBorder(),
                         ),
-                        focusedErrorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
+                        readOnly: true,
                       ),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _amountController,
+                        decoration: InputDecoration(
+                          labelText: context.l10n.amount,
+                          border: const OutlineInputBorder(),
+                          errorText: amountError,
+                          errorBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
+                          focusedErrorBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        onChanged: (value) {
+                          calculateInstallment();
+                          setState(() {
+                            amountError =
+                                LoanValidation.validateAmount(value, context);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: interestRateController,
+                        decoration: InputDecoration(
+                          labelText: context.l10n.interest,
+                          border: const OutlineInputBorder(),
+                          errorText: interestError,
+                          errorBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
+                          focusedErrorBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        onChanged: (value) {
+                          calculateInstallment();
+                          setState(() {
+                            interestError = LoanValidation.validateInterestRate(
+                                value, context);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: paymentFrequency,
+                        decoration: InputDecoration(
+                          labelText: context.l10n.frecuency,
+                          border: const OutlineInputBorder(),
+                          errorText: paymentFrequencyError,
+                          errorBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
+                          focusedErrorBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
+                        ),
+                        items: <String>[
+                          '',
+                          context.l10n.daily,
+                          context.l10n.weekly,
+                          context.l10n.biweekly,
+                          context.l10n.monthly,
+                          context.l10n.yearly
+                        ].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value.isEmpty ? '' : value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            paymentFrequency = newValue!;
+                            paymentFrequencyError =
+                                LoanValidation.validatePaymentFrequency(
+                                    paymentFrequency, context);
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        decoration: InputDecoration(
+                          labelText: context.l10n.cantCuotes,
+                          border: const OutlineInputBorder(),
+                          errorText: installmentsError,
+                          errorBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
+                          focusedErrorBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        onChanged: (value) {
+                          int? installments = int.tryParse(value);
+                          setState(() {
+                            if (installments != null && installments > 1) {
+                              numberOfInstallments = installments;
+                              installmentsError = null;
+                            } else {
+                              installmentsError =
+                                  LoanValidation.validateInstallments(
+                                      value, context);
+                            }
+                          });
+                          calculateInstallment();
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      if (totalToPay != null) ...[
+                        Text(
+                            '${context.l10n.totalToPay}${formatCurrency(totalToPay)}'),
+                        Text(
+                            '${context.l10n.amountPerInstallment}${formatCurrency(amountToPayPerInstallment)}'),
                       ],
-                      onChanged: (value) {
-                        calculateInstallment();
-                        setState(() {
-                          amountError =
-                              LoanValidation.validateAmount(value, context);
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: interestRateController,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.interest,
-                        border: const OutlineInputBorder(),
-                        errorText: interestError,
-                        errorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
-                        focusedErrorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: _confirmLoan,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: Text(context.l10n.acept),
+                          ),
+                          const SizedBox(width: 40),
+                          ElevatedButton(
+                            onPressed: _cancelLoan,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: Text(context.l10n.cancel),
+                          ),
+                        ],
                       ),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
-                      onChanged: (value) {
-                        calculateInstallment();
-                        setState(() {
-                          interestError = LoanValidation.validateInterestRate(
-                              value, context);
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: paymentFrequency,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.frecuency,
-                        border: const OutlineInputBorder(),
-                        errorText: paymentFrequencyError,
-                        errorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
-                        focusedErrorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
-                      ),
-                      items: <String>[
-                        '',
-                        context.l10n.daily,
-                        context.l10n.weekly,
-                        context.l10n.biweekly,
-                        context.l10n.monthly,
-                        context.l10n.yearly
-                      ].map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value.isEmpty ? '' : value),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          paymentFrequency = newValue!;
-                          paymentFrequencyError =
-                              LoanValidation.validatePaymentFrequency(
-                                  paymentFrequency, context);
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      decoration: InputDecoration(
-                        labelText: context.l10n.cantCuotes,
-                        border: const OutlineInputBorder(),
-                        errorText: installmentsError,
-                        errorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
-                        focusedErrorBorder: const OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) {
-                        int? installments = int.tryParse(value);
-                        setState(() {
-                          if (installments != null && installments > 1) {
-                            numberOfInstallments = installments;
-                            installmentsError = null;
-                          } else {
-                            installmentsError =
-                                LoanValidation.validateInstallments(
-                                    value, context);
-                          }
-                        });
-                        calculateInstallment();
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    if (totalToPay != null) ...[
-                      Text(
-                          '${context.l10n.totalToPay}${formatCurrency(totalToPay)}'),
-                      Text(
-                          '${context.l10n.amountPerInstallment}${formatCurrency(amountToPayPerInstallment)}'),
                     ],
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: _confirmLoan,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: Text(context.l10n.acept),
-                        ),
-                        const SizedBox(width: 40),
-                        ElevatedButton(
-                          onPressed: _cancelLoan,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: Text(context.l10n.cancel),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),

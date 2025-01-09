@@ -1,6 +1,5 @@
-// loan_state.dart
 import 'package:equatable/equatable.dart';
-import '../../../domain/models/loan/loan.dart';
+import 'package:prestamos/domain/models/loan/loan.dart';
 
 abstract class LoanState extends Equatable {
   @override
@@ -11,13 +10,13 @@ class LoanInitial extends LoanState {}
 
 class LoanLoading extends LoanState {}
 
-class LoanLoaded extends LoanState {
-  final List<Loan> loan;
+class LoanSuccess extends LoanState {
+  final String message;
 
-  LoanLoaded(this.loan);
+  LoanSuccess(this.message);
 
   @override
-  List<Object> get props => [loan];
+  List<Object> get props => [message];
 }
 
 class LoanError extends LoanState {
@@ -27,4 +26,13 @@ class LoanError extends LoanState {
 
   @override
   List<Object> get props => [message];
+}
+
+class LoanDataSuccess extends LoanState {
+  final List<Loan> loans;
+
+  LoanDataSuccess(this.loans);
+
+  @override
+  List<Object> get props => [loans];
 }

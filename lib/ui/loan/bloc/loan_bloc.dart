@@ -1,32 +1,36 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:prestamos/data/repositories/loan_repository.dart';
 import 'loan_event.dart';
 import 'loan_state.dart';
+import 'package:prestamos/data/repositories/loan_repository.dart';
 
 class LoanBloc extends Bloc<LoanEvent, LoanState> {
   final LoanRepository loanRepository;
 
-  LoanBloc(this.loanRepository) : super(LoanInitial());
+  LoanBloc(this.loanRepository) : super(LoanInitial()) {
+    on<AddLoan>((event, emit) async {
+      emit(LoanLoading());
+      try {
+        String loanId = await loanRepository.addLoan(
+          clientName: event.clientName,
+          amount: event.amount,
+          interestRate: event.interestRate,
+          numberOfInstallments: event.numberOfInstallments,
+          paymentFrequency: event.paymentFrequency,
+        );
+        emit(LoanSuccess('Préstamo creado con ID: $loanId'));
+      } catch (e) {
+        emit(LoanError('Fallo al crear préstamo: $e'));
+      }
+    });
 
-  Stream<LoanState> mapEventToState(LoanEvent event) async* {
-    if (event is AddLoan) {
-      yield LoanLoading();
+    on<FetchLoans>((event, emit) async {
+      emit(LoanLoading());
       try {
-        String loanId = await loanRepository.addLoan(event.loan);
-        yield LoanLoaded(
-            [event.loan.copyWith(id: loanId)]); // Retorna el préstamo agregado
+        final loans = await loanRepository.getLoans(event.userId);
+        emit(LoanDataSuccess(loans));
       } catch (e) {
-        yield LoanError('Error al agregar el préstamo: $e');
+        emit(LoanError('Fallo al obtener préstamos: $e'));
       }
-    } else if (event is RemoveLoan) {
-      yield LoanLoading();
-      try {
-        await loanRepository.removeLoan(event.loanId);
-        yield LoanLoaded(
-            []); // Retorna una lista vacía o puedes manejar la lista de otra manera
-      } catch (e) {
-        yield LoanError('Error al eliminar el préstamo: $e');
-      }
-    }
+    });
   }
 }

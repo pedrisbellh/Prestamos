@@ -4,10 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:prestamos/data/repositories/client_repository.dart';
 import 'package:prestamos/data/repositories/company_repository.dart';
+import 'package:prestamos/data/repositories/loan_repository.dart';
 import 'package:prestamos/ui/client/bloc/client_bloc.dart';
 import 'package:prestamos/ui/client/screens/client_details_screen.dart';
 import 'package:prestamos/ui/company/bloc/company_bloc.dart';
 import 'package:prestamos/ui/company/screens/create_company_screen.dart';
+import 'package:prestamos/ui/loan/bloc/loan_bloc.dart';
 import 'package:prestamos/ui/loan/screens/create_loan_screen.dart';
 import 'package:prestamos/ui/loan/screens/print_screen.dart';
 import 'package:prestamos/ui/user/screens/register_screen.dart';
@@ -46,6 +48,9 @@ void main() async {
         BlocProvider(
           create: (context) => ClientBloc(
               ClientRepository(FirebaseFirestore.instance), 'userId'),
+        ),
+        BlocProvider(
+          create: (context) => LoanBloc(LoanRepository()),
         ),
 
         // Otros providers

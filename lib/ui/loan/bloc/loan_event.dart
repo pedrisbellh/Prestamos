@@ -1,6 +1,4 @@
-// loan_event.dart
 import 'package:equatable/equatable.dart';
-import 'package:prestamos/domain/models/loan/loan.dart';
 
 abstract class LoanEvent extends Equatable {
   @override
@@ -8,19 +6,30 @@ abstract class LoanEvent extends Equatable {
 }
 
 class AddLoan extends LoanEvent {
-  final Loan loan;
+  final String clientName;
+  final double amount;
+  final double interestRate;
+  final int numberOfInstallments;
+  final String paymentFrequency;
 
-  AddLoan(this.loan);
+  AddLoan(this.clientName, this.amount, this.interestRate,
+      this.numberOfInstallments, this.paymentFrequency);
 
   @override
-  List<Object> get props => [loan];
+  List<Object> get props => [
+        clientName,
+        amount,
+        interestRate,
+        numberOfInstallments,
+        paymentFrequency
+      ];
 }
 
-class RemoveLoan extends LoanEvent {
-  final String loanId;
+class FetchLoans extends LoanEvent {
+  final String userId;
 
-  RemoveLoan(this.loanId);
+  FetchLoans(this.userId);
 
   @override
-  List<Object> get props => [loanId];
+  List<Object> get props => [userId];
 }
