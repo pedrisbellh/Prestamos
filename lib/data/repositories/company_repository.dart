@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:prestamos/data/services/firebase_service.dart';
+import 'package:prestamos/domain/models/company/company.dart';
 
 class CompanyRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -8,7 +9,6 @@ class CompanyRepository {
       String name, String address, String phone, String? rcn) async {
     String? userId = _auth.currentUser?.uid;
 
-    // Lógica para agregar la empresa a Firestore
     await addCompanyToFirestore(
       name: name,
       address: address,
@@ -16,5 +16,9 @@ class CompanyRepository {
       rcn: rcn,
       userId: userId!,
     );
+  }
+
+  Future<Company?> getCompany(String userId) async {
+    return await getCompanyFromFirestore(userId);
   }
 }

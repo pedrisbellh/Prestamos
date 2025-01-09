@@ -21,5 +21,19 @@ class CompanyBloc extends Bloc<CompanyEvent, CompanyState> {
         emit(CompanyError('Fallo al crear empresa: $e'));
       }
     });
+
+    on<FetchCompany>((event, emit) async {
+      emit(CompanyLoading());
+      try {
+        final company = await companyRepository.getCompany(event.userId);
+        if (company != null) {
+          emit(CompanyDataSuccess(company));
+        } else {
+          emit(CompanyError('Empresa no encontrada'));
+        }
+      } catch (e) {
+        emit(CompanyError('Fallo al obtener empresa: $e'));
+      }
+    });
   }
 }

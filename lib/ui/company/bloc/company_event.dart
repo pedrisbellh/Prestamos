@@ -16,3 +16,12 @@ class AddCompany extends CompanyEvent {
   @override
   List<Object> get props => [name, address, phone, rcn ?? ''];
 }
+
+class FetchCompany extends CompanyEvent {
+  final String userId;
+
+  FetchCompany(this.userId);
+
+  @override
+  List<Object> get props => [userId];
+}

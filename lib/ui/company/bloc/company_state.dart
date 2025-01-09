@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:prestamos/domain/models/company/company.dart';
 
 abstract class CompanyState extends Equatable {
   @override
@@ -25,4 +26,13 @@ class CompanyError extends CompanyState {
 
   @override
   List<Object> get props => [message];
+}
+
+class CompanyDataSuccess extends CompanyState {
+  final Company company;
+
+  CompanyDataSuccess(this.company);
+
+  @override
+  List<Object> get props => [company];
 }
