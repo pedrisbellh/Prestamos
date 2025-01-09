@@ -1,76 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:prestamos/domain/models/client/client.dart';
 import 'package:prestamos/domain/models/company/company.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
-
-Future<List<Map<String, dynamic>>> getClient() async {
-  List<Map<String, dynamic>> client = [];
-  CollectionReference collectionReferenceClient = db.collection('client');
-
-  try {
-    QuerySnapshot queryClient = await collectionReferenceClient.get();
-    for (var documento in queryClient.docs) {
-      client.add(documento.data() as Map<String, dynamic>);
-    }
-  } catch (e) {
-    print("Error al obtener clientes: $e");
-  }
-
-  return client;
-}
-
-Future<void> addClientToFirestore(
-    String name,
-    String phone,
-    String emergencyContactName,
-    String emergencyContactPhone,
-    String address,
-    String identityCard) async {
-  CollectionReference collectionReferenceClient = db.collection('client');
-
-  try {
-    await collectionReferenceClient.add({
-      'name': name,
-      'phone': phone,
-      'emergencyContactName': emergencyContactName,
-      'emergencyContactPhone': emergencyContactPhone,
-      'address': address,
-      'identityCard': identityCard,
-    });
-  } catch (e) {
-    print("Error al agregar cliente a Firestore: $e");
-  }
-}
-
-Future<void> deleteClientFromFirestore(String clientName) async {
-  try {
-    await FirebaseFirestore.instance
-        .collection('clients')
-        .doc(clientName)
-        .delete();
-    print("Cliente eliminado: $clientName");
-  } catch (e) {
-    print("Error al eliminar cliente: $e");
-    throw e;
-  }
-}
-
-Future<Client?> getClientById(String clientId) async {
-  try {
-    final doc = await FirebaseFirestore.instance
-        .collection('clients')
-        .doc(clientId)
-        .get();
-
-    if (doc.exists) {
-      return Client.fromJson(doc.data()!);
-    }
-  } catch (e) {
-    print('Error al obtener el cliente: $e');
-  }
-  return null; // Retorna null si no se encuentra el cliente
-}
 
 Future<void> deleteLoanForClient(String clientName, String userId) async {
   try {
