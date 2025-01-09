@@ -507,7 +507,7 @@ class HomeScreenState extends State<HomeScreen> {
                 : clients;
 
             return filteredClients.isEmpty
-                ? Center(child: Text(context.l10n.noExistClient))
+                ? Center(child: Text(context.l10n.noFoundClients))
                 : ListView.builder(
                     itemCount: filteredClients.length,
                     itemBuilder: (context, index) {
