@@ -368,6 +368,7 @@ class HomeScreenState extends State<HomeScreen> {
                         TextButton(
                           onPressed: () {
                             clientBloc.add(RemoveClient(client.name));
+                            deleteLoanForClient(client.name, userId!);
                             Navigator.of(context).pop();
                           },
                           style: TextButton.styleFrom(
