@@ -126,7 +126,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
     if (fecha == null) {
       return context.l10n.noPay;
     }
-    return DateFormat('yyyy-MM-dd').format(fecha);
+    return DateFormat('dd-MM-yyyy').format(fecha);
   }
 
   void _confirmPayment() {
@@ -273,7 +273,9 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                     Text(
                       context.l10n.paySelector,
                       style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
@@ -312,34 +314,44 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                     const SizedBox(height: 20),
                     _buildDetailText(context.l10n.loanPayed,
                         '${numberOfInstallments! - cuotasRestantes}/${numberOfInstallments!}'),
+                    const Divider(),
+                    const SizedBox(height: 10),
+                    Text(
+                      context.l10n.loanDetails,
+                      style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal),
+                    ),
                     const SizedBox(height: 20),
                     _buildDetailText(context.l10n.totalAmount,
                         '\$${totalAmount!.toStringAsFixed(2)}'),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     _buildDetailText(context.l10n.interestRate,
                         '\$${(totalAmount! * interestRate! / 100).toStringAsFixed(2)}'),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     _buildDetailText(context.l10n.totalToPay,
                         '\$${(totalAmount! + (totalAmount! * interestRate! / 100)).toStringAsFixed(2)}'),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     _buildDetailText(context.l10n.amountPerInstallment,
                         '\$${((totalAmount! + (totalAmount! * interestRate! / 100)) / numberOfInstallments!).toStringAsFixed(2)}'),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     _buildDetailText(context.l10n.payedAmount,
                         '\$${(totalAmount! + (totalAmount! * interestRate! / 100) - (cuotasRestantes * (totalAmount! + (totalAmount! * interestRate! / 100)) / numberOfInstallments!)).toStringAsFixed(2)}'),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     _buildDetailText(
                         context.l10n.paymentFrequency, paymentFrequency!),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     _buildDetailText(context.l10n.lastPay,
                         formatFechaUltimoPago(fechaUltimoPago)),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     _buildDetailText(
                         context.l10n.nextPay,
                         fechaNextPay != null
-                            ? DateFormat('yyyy-MM-dd').format(fechaNextPay!)
+                            ? DateFormat('dd-MM-yyyy').format(fechaNextPay!)
                             : context.l10n.noPay),
-                    const SizedBox(height: 40),
+                    const Divider(),
+                    const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
