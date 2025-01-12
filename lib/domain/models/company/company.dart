@@ -1,25 +1,18 @@
-class Company {
-  final String name;
-  final String address;
-  final String phone;
-  final String? rcn;
-  final String userId;
+import 'package:freezed_annotation/freezed_annotation.dart';
+part 'company.freezed.dart';
+part 'company.g.dart';
 
-  Company({
-    required this.name,
-    required this.address,
-    required this.phone,
-    this.rcn,
-    required this.userId,
-  });
-
-  factory Company.fromMap(Map<String, dynamic> data) {
-    return Company(
-      name: data['name'],
-      address: data['address'],
-      phone: data['phone'],
-      rcn: data['rcn'],
-      userId: data['userId'],
-    );
-  }
+@freezed
+class Company with _$Company {
+  const Company._();
+  const factory Company({
+    String? id,
+    required String name,
+    required String address,
+    required String phone,
+    required String? rcn,
+    required String? userId,
+  }) = _Company;
+  factory Company.fromJson(Map<String, Object?> json) =>
+      _$CompanyFromJson(json);
 }

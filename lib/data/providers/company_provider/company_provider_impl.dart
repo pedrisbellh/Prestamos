@@ -40,7 +40,7 @@ class CompanyProviderImpl implements CompanyProvider {
           .where('userId', isEqualTo: userId)
           .get();
       if (querySnapshot.docs.isNotEmpty) {
-        return Company.fromMap(
+        return Company.fromJson(
             querySnapshot.docs.first.data() as Map<String, dynamic>);
       }
     } catch (e) {
