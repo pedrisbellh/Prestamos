@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:prestamos/data/providers/company_provider/company_provider_impl.dart';
+import 'package:prestamos/data/repositories/company_repository.dart';
 import 'package:prestamos/ui/client/bloc/client_bloc.dart';
 import 'package:prestamos/ui/client/bloc/client_event.dart';
 import 'package:prestamos/ui/client/bloc/client_state.dart';
@@ -25,6 +27,7 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   late ClientBloc clientBloc;
+  late CompanyRepository companyRepository;
 
   final List<Client> clients = [];
 
@@ -47,6 +50,7 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     userId = _auth.currentUser?.uid;
+    companyRepository = CompanyRepository(CompanyProviderImpl());
     clientBloc =
         ClientBloc(ClientRepository(FirebaseFirestore.instance), userId!);
     clientBloc.add(LoadClients());
@@ -455,7 +459,7 @@ class HomeScreenState extends State<HomeScreen> {
               switch (value) {
                 case 1:
                   String userId = FirebaseAuth.instance.currentUser!.uid;
-                  Company? company = await getCompanyFromFirestore(userId);
+                  Company? company = await companyRepository.getCompany(userId);
 
                   if (company != null) {
                     context.push('/viewCompany/$userId');
