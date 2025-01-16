@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:prestamos/data/providers/client_provider/client_provider_impl.dart';
 import 'package:prestamos/data/providers/company_provider/company_provider_impl.dart';
 import 'package:prestamos/data/repositories/company_repository.dart';
 import 'package:prestamos/ui/client/bloc/client_bloc.dart';
@@ -51,8 +52,10 @@ class HomeScreenState extends State<HomeScreen> {
     super.initState();
     userId = _auth.currentUser?.uid;
     companyRepository = CompanyRepository(CompanyProviderImpl());
-    clientBloc =
-        ClientBloc(ClientRepository(FirebaseFirestore.instance), userId!);
+    clientBloc = ClientBloc(
+      ClientRepository(ClientProviderImpl(FirebaseFirestore.instance)),
+      userId!,
+    );
     clientBloc.add(LoadClients());
   }
 

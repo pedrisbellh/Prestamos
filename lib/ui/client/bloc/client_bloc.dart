@@ -19,6 +19,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
     });
 
     on<AddClient>((event, emit) async {
+      emit(ClientLoading());
       try {
         await clientRepository.addClient(event.client);
         final clients = await clientRepository.fetchClients(userId);
@@ -29,6 +30,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
     });
 
     on<RemoveClient>((event, emit) async {
+      emit(ClientLoading());
       try {
         await clientRepository.removeClient(event.clientName, userId);
         final clients = await clientRepository.fetchClients(userId);
@@ -51,10 +53,8 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
 
     on<LoadClientDetails>((event, emit) async {
       emit(ClientLoading());
-
       try {
         final client = await clientRepository.getClientById(event.clientId);
-
         emit(ClientDetailsLoaded(client));
       } catch (e) {
         emit(ClientError('Error al cargar los detalles del cliente: $e'));

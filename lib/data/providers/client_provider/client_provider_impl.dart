@@ -5,30 +5,50 @@ import 'package:prestamos/data/providers/client_provider/client_provider.dart';
 class ClientProviderImpl implements ClientProvider {
   static const _collectionName = 'clients';
 
-  @override
-  Future<void> deleteClient({required String id}) {
-    // TODO: implement deleteClient
-    throw UnimplementedError();
-  }
+  final FirebaseFirestore db;
+  ClientProviderImpl(this.db);
 
   @override
   Future<List<Client>> getAllClientsByUser({required String userId}) async {
-    final query = FirebaseFirestore.instance
+    QuerySnapshot querySnapshot = await db
         .collection(_collectionName)
-        .withConverter(
-          fromFirestore: (json, _) => Client.fromJson(json.data() ?? {}),
-          toFirestore: (value, _) => value.toJson(),
-        )
-        .where('userId', isEqualTo: userId);
-
-    return query
-        .get()
-        .then((value) => value.docs.map((e) => e.data()).toList());
+        .where('userId', isEqualTo: userId)
+        .get();
+    return querySnapshot.docs
+        .map((doc) => Client.fromJson(doc.data() as Map<String, dynamic>))
+        .toList();
   }
 
   @override
-  Future<Client> getClientById({required String id}) {
-    // TODO: implement getClientById
-    throw UnimplementedError();
+  Future<void> addNewClient({required Client client}) async {
+    await db.collection(_collectionName).add(client.toJson());
+  }
+
+  @override
+  Future<void> deleteClient(
+      {required String clientName, required String userId}) async {
+    QuerySnapshot querySnapshot = await db
+        .collection(_collectionName)
+        .where('name', isEqualTo: clientName)
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      String clientId = querySnapshot.docs.first.id;
+      await db.collection(_collectionName).doc(clientId).delete();
+    } else {
+      throw Exception('Cliente no encontrado o no autorizado para eliminar.');
+    }
+  }
+
+  @override
+  Future<Client> getClientById({required String clientId}) async {
+    DocumentSnapshot doc =
+        await db.collection(_collectionName).doc(clientId).get();
+    if (doc.exists) {
+      return Client.fromJson(doc.data() as Map<String, dynamic>);
+    } else {
+      throw Exception('Cliente no encontrado');
+    }
   }
 }

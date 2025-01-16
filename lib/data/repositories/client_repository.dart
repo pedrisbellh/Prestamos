@@ -1,47 +1,24 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:prestamos/data/providers/client_provider/client_provider_impl.dart';
 import '../../domain/models/client/client.dart';
 
 class ClientRepository {
-  final FirebaseFirestore firestore;
+  final ClientProviderImpl clientProvider;
 
-  ClientRepository(this.firestore);
+  ClientRepository(this.clientProvider);
 
   Future<List<Client>> fetchClients(String userId) async {
-    QuerySnapshot querySnapshot = await firestore
-        .collection('clients')
-        .where('userId', isEqualTo: userId)
-        .get();
-    return querySnapshot.docs
-        .map((doc) => Client.fromJson(doc.data() as Map<String, dynamic>))
-        .toList();
+    return await clientProvider.getAllClientsByUser(userId: userId);
   }
 
   Future<void> addClient(Client client) async {
-    await firestore.collection('clients').add(client.toJson());
+    await clientProvider.addNewClient(client: client);
   }
 
   Future<void> removeClient(String clientName, String userId) async {
-    QuerySnapshot querySnapshot = await firestore
-        .collection('clients')
-        .where('name', isEqualTo: clientName)
-        .where('userId', isEqualTo: userId)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      String clientId = querySnapshot.docs.first.id;
-      await firestore.collection('clients').doc(clientId).delete();
-    } else {
-      throw Exception('Cliente no encontrado o no autorizado para eliminar.');
-    }
+    await clientProvider.deleteClient(clientName: clientName, userId: userId);
   }
 
   Future<Client> getClientById(String clientId) async {
-    DocumentSnapshot doc =
-        await firestore.collection('clients').doc(clientId).get();
-    if (doc.exists) {
-      return Client.fromJson(doc.data() as Map<String, dynamic>);
-    } else {
-      throw Exception('Cliente no encontrado');
-    }
+    return await clientProvider.getClientById(clientId: clientId);
   }
 }
