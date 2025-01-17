@@ -280,9 +280,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(width: 40),
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () => context.pop(),
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
@@ -460,6 +458,8 @@ class HomeScreenState extends State<HomeScreen> {
             offset: const Offset(0, 52),
             onSelected: (value) async {
               switch (value) {
+                // Cual es la opcion (1)
+                // llamo a un evento del bloc
                 case 1:
                   String userId = FirebaseAuth.instance.currentUser!.uid;
                   Company? company = await companyRepository.getCompany(userId);
@@ -528,18 +528,13 @@ class HomeScreenState extends State<HomeScreen> {
           return Center(child: Text(context.l10n.noFoundClients));
         },
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          FloatingActionButton(
-            onPressed: _addClientDialog,
-            backgroundColor: Colors.teal,
-            foregroundColor: Colors.white,
-            heroTag: 'add_client',
-            child: const Icon(Icons.person_add),
-          ),
-          const SizedBox(height: 16),
-        ],
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addClientDialog,
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        heroTag: 'add_client',
+        child: const Icon(Icons.person_add),
       ),
     );
   }
