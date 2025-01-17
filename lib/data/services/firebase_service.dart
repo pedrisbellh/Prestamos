@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:prestamos/domain/models/company/company.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 
@@ -52,75 +51,4 @@ Future<String> saveLoanToFirestore({
   });
 
   return docRef.id;
-}
-
-Future<void> addCompanyToFirestore({
-  required String name,
-  required String address,
-  required String phone,
-  String? rcn,
-  required String userId,
-}) async {
-  CollectionReference collectionReferenceCompany = db.collection('company');
-
-  try {
-    QuerySnapshot existingCompany = await collectionReferenceCompany
-        .where('userId', isEqualTo: userId)
-        .get();
-    if (existingCompany.docs.isNotEmpty) {
-      throw Exception('Este usuario ya tiene una empresa registrada.');
-    }
-
-    await collectionReferenceCompany.add({
-      'name': name,
-      'address': address,
-      'phone': phone,
-      'rcn': rcn,
-      'userId': userId,
-    });
-    print("Empresa agregada a Firestore: $name");
-  } catch (e) {
-    print("Error al agregar empresa a Firestore: $e");
-    throw e;
-  }
-}
-
-Future<Company?> getCompanyFromFirestore(String userId) async {
-  CollectionReference collectionReferenceCompany =
-      FirebaseFirestore.instance.collection('company');
-
-  try {
-    QuerySnapshot querySnapshot = await collectionReferenceCompany
-        .where('userId', isEqualTo: userId)
-        .get();
-    if (querySnapshot.docs.isNotEmpty) {
-      return Company.fromMap(
-          querySnapshot.docs.first.data() as Map<String, dynamic>);
-    }
-  } catch (e) {
-    print("Error al obtener la empresa: $e");
-  }
-  return null;
-}
-
-Future<void> deleteCompanyFromFirestore(String userId) async {
-  CollectionReference collectionReferenceCompany =
-      FirebaseFirestore.instance.collection('company');
-
-  try {
-    QuerySnapshot querySnapshot = await collectionReferenceCompany
-        .where('userId', isEqualTo: userId)
-        .get();
-    if (querySnapshot.docs.isNotEmpty) {
-      await collectionReferenceCompany
-          .doc(querySnapshot.docs.first.id)
-          .delete();
-      print("Empresa eliminada de Firestore");
-    } else {
-      print("No se encontró la empresa para eliminar.");
-    }
-  } catch (e) {
-    print("Error al eliminar la empresa: $e");
-    throw e;
-  }
 }
