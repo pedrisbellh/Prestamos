@@ -152,7 +152,11 @@ class RegisterScreenState extends State<RegisterScreen> {
                       controller: _emailController,
                       decoration: InputDecoration(
                         labelText: context.l10n.email,
-                        border: OutlineInputBorder(
+                        prefixIcon: const Icon(
+                          Icons.email,
+                          color: Colors.teal,
+                        ),
+                        border: UnderlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Colors.teal),
                         ),
@@ -170,7 +174,11 @@ class RegisterScreenState extends State<RegisterScreen> {
                       controller: _passwordController,
                       decoration: InputDecoration(
                         labelText: context.l10n.password,
-                        border: OutlineInputBorder(
+                        prefixIcon: const Icon(
+                          Icons.lock,
+                          color: Colors.teal,
+                        ),
+                        border: UnderlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Colors.teal),
                         ),
@@ -201,7 +209,11 @@ class RegisterScreenState extends State<RegisterScreen> {
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(
                         labelText: context.l10n.confirmPassword,
-                        border: OutlineInputBorder(
+                        prefixIcon: const Icon(
+                          Icons.lock,
+                          color: Colors.teal,
+                        ),
+                        border: UnderlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Colors.teal),
                         ),
