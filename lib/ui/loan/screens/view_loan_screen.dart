@@ -135,7 +135,9 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
       return;
     }
 
-    if (selectedCuota != previousSelectedCuota) {
+    // Si se selecciona la última cuota
+    if (selectedCuota == numberOfInstallments) {
+      // Actualiza las cuotas pagadas
       _updateCuotasPagadas(selectedCuota!);
       SnackBarTop.showTopSnackBar(context, context.l10n.confirmPay);
 
@@ -143,13 +145,22 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
         cuotasRestantes--;
         previousSelectedCuota = selectedCuota;
 
-        if (cuotasRestantes == 0) {
-          _markLoanAsCompleted();
-        }
+        // Marca el préstamo como completado
+        _markLoanAsCompleted();
         context.go('/');
       });
     } else {
-      SnackBarTop.showTopSnackBar(context, context.l10n.changeCuote);
+      // Si no es la última cuota, solo actualiza las cuotas pagadas
+      _updateCuotasPagadas(selectedCuota!);
+      SnackBarTop.showTopSnackBar(context, context.l10n.confirmPay);
+
+      setState(() {
+        cuotasRestantes--;
+        previousSelectedCuota = selectedCuota;
+
+        // No se completa el préstamo, solo se actualiza el estado
+        context.go('/');
+      });
     }
   }
 
@@ -195,6 +206,11 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Calcular el porcentaje de cuotas pagadas
+
+    bool canRenewLoan =
+        (selectedCuota != null && numberOfInstallments != null) &&
+            (selectedCuota! / numberOfInstallments! > 0.7);
     if (totalAmount == null ||
         interestRate == null ||
         numberOfInstallments == null ||
@@ -211,10 +227,39 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.print, color: Colors.white),
-            onPressed: () {
-              context.push('/print');
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            offset:
+                const Offset(0, kToolbarHeight), // Desplazamiento hacia abajo
+            onSelected: (String value) {
+              if (value == 'imprimir') {
+                context.push('/print');
+              } else if (value == 'renovar' && canRenewLoan) {
+                _renewLoan();
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                const PopupMenuItem<String>(
+                  value: 'imprimir',
+                  child: Text('Imprimir recibo'),
+                ),
+                PopupMenuItem<String>(
+                  value: 'renovar',
+
+                  enabled:
+                      canRenewLoan, // Desactiva la opción si no se puede renovar
+
+                  child: Text(
+                    'Renovar préstamo',
+                    style: TextStyle(
+                      color: canRenewLoan
+                          ? Colors.black
+                          : Colors.grey, // Cambia el color del texto
+                    ),
+                  ),
+                ),
+              ];
             },
           ),
         ],
@@ -357,17 +402,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            if (fechaNextPay != null &&
-                                fechaNextPay!.year == DateTime.now().year &&
-                                fechaNextPay!.month == DateTime.now().month &&
-                                fechaNextPay!.day == DateTime.now().day) {
-                              _confirmPayment();
-                            } else if (fechaNextPay == fechaUltimoPago) {
-                              _confirmPayment();
-                            } else {
-                              context.go('/');
-                            }
-                            //_confirmPayment();
+                            _confirmPayment();
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
