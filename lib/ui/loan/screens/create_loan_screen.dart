@@ -69,10 +69,6 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
     SnackBarTop.showTopSnackBar(context, message);
   }
 
-  void _cancelLoan() {
-    context.go('/');
-  }
-
   void _confirmLoan() async {
     final amountError =
         LoanValidation.validateAmount(_amountController.text, context);
@@ -129,7 +125,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
           if (state is LoanSuccess) {
             _showSnackBar(state.message);
 
-            context.go('/');
+            context.pop();
           } else if (state is LoanError) {
             _showSnackBar(state.message);
           }
@@ -294,7 +290,9 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                           ),
                           const SizedBox(width: 40),
                           ElevatedButton(
-                            onPressed: _cancelLoan,
+                            onPressed: () {
+                              context.pop();
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
                               foregroundColor: Colors.white,

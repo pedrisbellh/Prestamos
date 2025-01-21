@@ -100,7 +100,7 @@ class RegisterScreenState extends State<RegisterScreen> {
       });
     } else {
       // Registro exitoso
-      context.go('/');
+      context.go('/clients');
     }
   }
 

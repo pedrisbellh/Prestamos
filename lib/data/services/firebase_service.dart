@@ -30,6 +30,7 @@ Future<String> saveLoanToFirestore({
   required int cuotasRestantes,
   bool completado = false,
   bool renovado = false,
+  bool atrasado = false,
 }) async {
   DateTime createdAt = DateTime.now();
   DateTime fechaUltimoPago = DateTime.now();
@@ -48,6 +49,7 @@ Future<String> saveLoanToFirestore({
     'fechaUltimoPago': fechaUltimoPago,
     'completado': completado,
     'renovado': renovado,
+    'atrasado': atrasado,
   });
 
   return docRef.id;

@@ -116,6 +116,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
           .update({
         'cuotasPagadas': cuotasPagadas,
         'fechaUltimoPago': DateTime.now(),
+        'fechaNextPay': fechaNextPay,
       });
     } catch (e) {
       _showSnackBar(context.l10n.error);
@@ -147,7 +148,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
 
         // Marca el préstamo como completado
         _markLoanAsCompleted();
-        context.go('/');
+        context.pop();
       });
     } else {
       // Si no es la última cuota, solo actualiza las cuotas pagadas
@@ -159,7 +160,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
         previousSelectedCuota = selectedCuota;
 
         // No se completa el préstamo, solo se actualiza el estado
-        context.go('/');
+        context.pop();
       });
     }
   }
@@ -302,7 +303,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                         const SizedBox(width: 20),
                         ElevatedButton(
                           onPressed: () {
-                            context.go('/');
+                            context.pop();
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
@@ -415,7 +416,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                         const SizedBox(width: 50),
                         ElevatedButton(
                           onPressed: () {
-                            context.go('/');
+                            context.pop();
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,

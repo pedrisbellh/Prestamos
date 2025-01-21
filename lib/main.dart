@@ -11,17 +11,21 @@ import 'package:prestamos/ui/client/bloc/client_bloc.dart';
 import 'package:prestamos/ui/client/screens/client_details_screen.dart';
 import 'package:prestamos/ui/company/bloc/company_bloc.dart';
 import 'package:prestamos/ui/company/screens/create_company_screen.dart';
+import 'package:prestamos/ui/home/home_screen.dart';
 import 'package:prestamos/ui/loan/bloc/loan_bloc.dart';
 import 'package:prestamos/ui/loan/screens/create_loan_screen.dart';
+import 'package:prestamos/ui/loan/screens/delays_screen.dart';
+import 'package:prestamos/ui/loan/screens/loans_screen.dart';
 import 'package:prestamos/ui/loan/screens/print_screen.dart';
 import 'package:prestamos/ui/user/screens/register_screen.dart';
+import 'package:prestamos/ui/user/screens/settings_screen.dart';
 import 'package:prestamos/ui/user/screens/user_panel_screen.dart';
 import 'package:prestamos/ui/company/screens/view_company_screen.dart';
 import 'package:prestamos/ui/loan/screens/view_loan_screen.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'ui/user/screens/login_screen.dart';
-import 'ui/client/screens/home_screen.dart';
+import 'ui/client/screens/clients_screen.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -84,6 +88,30 @@ final GoRouter _router = GoRouter(
       path: '/register',
       builder: (BuildContext context, GoRouterState state) {
         return const RegisterScreen();
+      },
+    ),
+    GoRoute(
+      path: '/clients',
+      builder: (BuildContext context, GoRouterState state) {
+        return const ClientsScreen();
+      },
+    ),
+    GoRoute(
+      path: '/loans',
+      builder: (BuildContext context, GoRouterState state) {
+        return const LoansScreen();
+      },
+    ),
+    GoRoute(
+      path: '/delays',
+      builder: (BuildContext context, GoRouterState state) {
+        return const DelaysScreen();
+      },
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (BuildContext context, GoRouterState state) {
+        return const SettingsScreen();
       },
     ),
     GoRoute(

@@ -4,13 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:prestamos/data/providers/client_provider/client_provider_impl.dart';
-import 'package:prestamos/data/providers/company_provider/company_provider_impl.dart';
-import 'package:prestamos/data/repositories/company_repository.dart';
 import 'package:prestamos/ui/client/bloc/client_bloc.dart';
 import 'package:prestamos/ui/client/bloc/client_event.dart';
 import 'package:prestamos/ui/client/bloc/client_state.dart';
 import 'package:prestamos/ui/extensions/build_context_extension.dart';
-import 'package:prestamos/domain/models/company/company.dart';
 import 'package:prestamos/data/repositories/client_repository.dart';
 import 'package:prestamos/ui/widgets/validators/client_validator.dart';
 import '../../widgets/utils/upper_case_text_formatter.dart';
@@ -19,16 +16,15 @@ import '../../../domain/models/client/client.dart';
 import '../../../data/services/firebase_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class ClientsScreen extends StatefulWidget {
+  const ClientsScreen({super.key});
 
   @override
-  HomeScreenState createState() => HomeScreenState();
+  ClientsScreenState createState() => ClientsScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class ClientsScreenState extends State<ClientsScreen> {
   late ClientBloc clientBloc;
-  late CompanyRepository companyRepository;
 
   final List<Client> clients = [];
 
@@ -51,7 +47,6 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     userId = _auth.currentUser?.uid;
-    companyRepository = CompanyRepository(CompanyProviderImpl());
     clientBloc = ClientBloc(
       ClientRepository(ClientProviderImpl(FirebaseFirestore.instance)),
       userId!,
@@ -317,49 +312,6 @@ class HomeScreenState extends State<HomeScreen> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.account_balance),
-              onPressed: () {
-                FirebaseFirestore.instance
-                    .collection('loan')
-                    .where('clientName', isEqualTo: client.name)
-                    .where('userId', isEqualTo: userId)
-                    .where('renovado', isEqualTo: false)
-                    .get()
-                    .then((querySnapshot) {
-                  if (querySnapshot.docs.isNotEmpty) {
-                    _showSnackBar(context.l10n.existLoan);
-                  } else {
-                    context.push('/createLoan/${client.name}');
-                  }
-                }).catchError((error) {
-                  _showSnackBar(context.l10n.error);
-                });
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.account_balance_wallet),
-              onPressed: () {
-                FirebaseFirestore.instance
-                    .collection('loan')
-                    .where('clientName', isEqualTo: client.name)
-                    .where('userId', isEqualTo: userId)
-                    //.where('completado', isEqualTo: false)
-                    .where('renovado', isEqualTo: false)
-                    .get()
-                    .then((querySnapshot) {
-                  if (querySnapshot.docs.isNotEmpty) {
-                    String loanId = querySnapshot.docs.first.id;
-
-                    context.push('/viewLoan/$loanId');
-                  } else {
-                    _showSnackBar(context.l10n.noLoan);
-                  }
-                }).catchError((error) {
-                  _showSnackBar(context.l10n.error);
-                });
-              },
-            ),
-            IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
                 showDialog(
@@ -406,15 +358,6 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _logout(BuildContext context) async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      context.go('/login');
-    } catch (e) {
-      _showSnackBar(context.l10n.error);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -452,46 +395,6 @@ class HomeScreenState extends State<HomeScreen> {
                 }
               });
             },
-          ),
-          PopupMenuButton<int>(
-            icon: const Icon(Icons.more_vert),
-            offset: const Offset(0, 52),
-            onSelected: (value) async {
-              switch (value) {
-                // Cual es la opcion (1)
-                // llamo a un evento del bloc
-                case 1:
-                  String userId = FirebaseAuth.instance.currentUser!.uid;
-                  Company? company = await companyRepository.getCompany(userId);
-
-                  if (company != null) {
-                    context.push('/viewCompany/$userId');
-                  } else {
-                    context.push('/createCompany');
-                  }
-                  break;
-                case 2:
-                  context.push('/userPanel');
-                  break;
-                case 3:
-                  _logout(context);
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem<int>(
-                value: 1,
-                child: Text(context.l10n.viewCompany),
-              ),
-              PopupMenuItem<int>(
-                value: 2,
-                child: Text(context.l10n.accountDetails),
-              ),
-              PopupMenuItem<int>(
-                value: 3,
-                child: Text(context.l10n.logout),
-              ),
-            ],
           ),
         ],
       ),
@@ -533,7 +436,6 @@ class HomeScreenState extends State<HomeScreen> {
         onPressed: _addClientDialog,
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
-        heroTag: 'add_client',
         child: const Icon(Icons.person_add),
       ),
     );
