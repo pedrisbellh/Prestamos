@@ -32,28 +32,37 @@ class DelaysScreenState extends State<DelaysScreen> {
 
     if (userId != null) {
       try {
-        // Obtener todos los préstamos del usuario
+        DateTime now = DateTime.now().toUtc(); // Obtiene la fecha actual en UTC
 
+        // Obtener todos los préstamos del usuario que están atrasados
         QuerySnapshot loanSnapshot = await _firestore
             .collection('loan')
             .where('userId', isEqualTo: userId)
+            .where('renovado', isEqualTo: false)
+            .where('completado', isEqualTo: false)
             .get();
 
-        // Extraer los nombres de los clientes de los préstamos
+        // Filtrar los clientes cuyos préstamos están atrasados
+        List<String> clientNames = [];
+        for (var doc in loanSnapshot.docs) {
+          Timestamp fechaNextPayTimestamp = doc['fechaNextPay'];
+          DateTime fechaNextPay =
+              fechaNextPayTimestamp.toDate(); // Convierte a DateTime
 
-        List<String> clientNames = loanSnapshot.docs
-            .map((doc) => doc['clientName'] as String)
-            .toList();
+          // Comparar con la fecha actual
+          if (fechaNextPay.isBefore(now)) {
+            clientNames.add(doc['clientName']
+                as String); // Agrega a la lista si está atrasado
+          }
+        }
 
         // Obtener todos los clientes del usuario
-
         QuerySnapshot clientSnapshot = await _firestore
             .collection('clients')
             .where('userId', isEqualTo: userId)
             .get();
 
         // Filtrar los clientes cuyos nombres están en la lista de clientNames
-
         setState(() {
           clientsWithLoans = clientSnapshot.docs
               .where((doc) => clientNames.contains(doc['name']))
@@ -64,8 +73,7 @@ class DelaysScreenState extends State<DelaysScreen> {
         });
       } catch (e) {
         // Manejo de errores
-
-        print('Error al obtener clientes con préstamos: $e');
+        print('Error al obtener clientes con préstamos atrasados: $e');
 
         setState(() {
           isLoading =
@@ -99,7 +107,6 @@ class DelaysScreenState extends State<DelaysScreen> {
                     .collection('loan')
                     .where('clientName', isEqualTo: client.name)
                     .where('userId', isEqualTo: userId)
-                    //.where('completado', isEqualTo: false)
                     .where('renovado', isEqualTo: false)
                     .get()
                     .then((querySnapshot) {
@@ -134,9 +141,9 @@ class DelaysScreenState extends State<DelaysScreen> {
               child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
             )) // Mostrar el indicador de carga
-
           : clientsWithLoans.isEmpty
-              ? const Center(child: Text('No hay clientes con pagos atrsados.'))
+              ? const Center(
+                  child: Text('No hay clientes con pagos atrasados.'))
               : ListView.builder(
                   itemCount: clientsWithLoans.length,
                   itemBuilder: (context, index) {
