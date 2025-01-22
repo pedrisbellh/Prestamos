@@ -47,6 +47,7 @@ Future<String> saveLoanToFirestore({
     'cuotasRestantes': cuotasRestantes,
     'createdAt': createdAt,
     'fechaUltimoPago': fechaUltimoPago,
+    'fechaNextPay': fechaUltimoPago,
     'completado': completado,
     'renovado': renovado,
     'atrasado': atrasado,
