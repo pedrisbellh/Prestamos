@@ -110,13 +110,17 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
 
   Future<void> _updateCuotasPagadas(int cuotasPagadas) async {
     try {
+      // Actualiza la fecha de la próxima cuota antes de guardar
+      fechaNextPay =
+          _calculateNextPaymentDate(fechaUltimoPago, paymentFrequency);
+
       await FirebaseFirestore.instance
           .collection('loan')
           .doc(widget.loanId)
           .update({
         'cuotasPagadas': cuotasPagadas,
         'fechaUltimoPago': DateTime.now(),
-        'fechaNextPay': fechaNextPay,
+        'fechaNextPay': Timestamp.fromDate(fechaNextPay!),
       });
     } catch (e) {
       _showSnackBar(context.l10n.error);
@@ -183,7 +187,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
           .doc(widget.loanId)
           .update({'renovado': true});
       _showSnackBar(context.l10n.renewLoan);
-      context.go('/createLoan/$clientName');
+      context.push('/createLoan/$clientName');
     } catch (e) {
       _showSnackBar(context.l10n.error);
     }
