@@ -272,9 +272,9 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                       const SizedBox(height: 16),
                       if (totalToPay != null) ...[
                         Text(
-                            '${context.l10n.totalToPay}${formatCurrency(totalToPay)}'),
+                            '${'${context.l10n.totalToPay}:  '}${formatCurrency(totalToPay)}'),
                         Text(
-                            '${context.l10n.amountPerInstallment}${formatCurrency(amountToPayPerInstallment)}'),
+                            '${'${context.l10n.amountPerInstallment}:  '}${formatCurrency(amountToPayPerInstallment)}'),
                       ],
                       const SizedBox(height: 16),
                       Row(
