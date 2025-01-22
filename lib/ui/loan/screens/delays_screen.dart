@@ -33,6 +33,8 @@ class DelaysScreenState extends State<DelaysScreen> {
     if (userId != null) {
       try {
         DateTime now = DateTime.now().toUtc(); // Obtiene la fecha actual en UTC
+        DateTime today =
+            DateTime(now.year, now.month, now.day); // Trunca la hora
 
         // Obtener todos los préstamos del usuario que están atrasados
         QuerySnapshot loanSnapshot = await _firestore
@@ -50,7 +52,7 @@ class DelaysScreenState extends State<DelaysScreen> {
               fechaNextPayTimestamp.toDate(); // Convierte a DateTime
 
           // Comparar con la fecha actual
-          if (fechaNextPay.isBefore(now)) {
+          if (fechaNextPay.isBefore(today)) {
             clientNames.add(doc['clientName']
                 as String); // Agrega a la lista si está atrasado
           }
