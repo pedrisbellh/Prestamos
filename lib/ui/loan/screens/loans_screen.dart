@@ -69,6 +69,7 @@ class LoansScreenState extends State<LoansScreen> {
           children: [
             IconButton(
               icon: const Icon(Icons.add_box),
+              color: Colors.teal,
               onPressed: () {
                 FirebaseFirestore.instance
                     .collection('loan')
@@ -88,7 +89,8 @@ class LoansScreenState extends State<LoansScreen> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.account_balance_wallet),
+              icon:
+                  const Icon(Icons.account_balance_wallet, color: Colors.teal),
               onPressed: () {
                 FirebaseFirestore.instance
                     .collection('loan')
@@ -111,7 +113,7 @@ class LoansScreenState extends State<LoansScreen> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.delete),
+              icon: Icon(Icons.delete, color: Colors.red.shade900),
               onPressed: () {
                 showDialog(
                   context: context,
