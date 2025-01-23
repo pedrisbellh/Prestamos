@@ -304,7 +304,7 @@ class ClientsScreenState extends State<ClientsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.person),
+              icon: const Icon(Icons.person, color: Colors.teal),
               onPressed: () {
                 final clientId = client.id;
                 context.read<ClientBloc>().add(LoadClientDetails(clientId!));
@@ -312,7 +312,7 @@ class ClientsScreenState extends State<ClientsScreen> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.delete),
+              icon: Icon(Icons.delete, color: Colors.red.shade900),
               onPressed: () {
                 showDialog(
                   context: context,
