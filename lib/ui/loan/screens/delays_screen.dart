@@ -49,10 +49,12 @@ class DelaysScreenState extends State<DelaysScreen> {
         for (var doc in loanSnapshot.docs) {
           Timestamp fechaNextPayTimestamp = doc['fechaNextPay'];
           DateTime fechaNextPay =
-              fechaNextPayTimestamp.toDate(); // Convierte a DateTime
-
+              fechaNextPayTimestamp.toDate().toUtc(); // Convierte a DateTime
+          // Truncar la hora de fechaNextPay
+          DateTime fechaNextPayTruncada =
+              DateTime(fechaNextPay.year, fechaNextPay.month, fechaNextPay.day);
           // Comparar con la fecha actual
-          if (fechaNextPay.isBefore(today)) {
+          if (fechaNextPayTruncada.isBefore(today)) {
             clientNames.add(doc['clientName']
                 as String); // Agrega a la lista si está atrasado
           }
@@ -103,7 +105,8 @@ class DelaysScreenState extends State<DelaysScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.account_balance_wallet),
+              icon: Icon(Icons.account_balance_wallet,
+                  color: Colors.red.shade900),
               onPressed: () {
                 FirebaseFirestore.instance
                     .collection('loan')
