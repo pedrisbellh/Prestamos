@@ -277,7 +277,7 @@ class ClientsScreenState extends State<ClientsScreen> {
                 TextButton(
                   onPressed: () => context.pop(),
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: Colors.red.shade900,
                     foregroundColor: Colors.white,
                   ),
                   child: Text(context.l10n.cancel),
@@ -340,7 +340,7 @@ class ClientsScreenState extends State<ClientsScreen> {
                             Navigator.of(context).pop();
                           },
                           style: TextButton.styleFrom(
-                            backgroundColor: Colors.red,
+                            backgroundColor: Colors.red.shade900,
                             foregroundColor: Colors.white,
                           ),
                           child: Text(context.l10n.cancel),
