@@ -311,7 +311,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
-                            backgroundColor: Colors.red,
+                            backgroundColor: Colors.red.shade900,
                             padding: const EdgeInsets.symmetric(
                                 vertical: 12.0, horizontal: 24.0),
                           ),
@@ -424,7 +424,7 @@ class ViewLoanScreenState extends State<ViewLoanScreen> {
                           },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
-                            backgroundColor: Colors.red,
+                            backgroundColor: Colors.red.shade900,
                             padding: const EdgeInsets.symmetric(
                                 vertical: 12.0, horizontal: 24.0),
                           ),
