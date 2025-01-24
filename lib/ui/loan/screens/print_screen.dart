@@ -79,7 +79,7 @@ class PrintScreenState extends State<PrintScreen> {
                             Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                            backgroundColor: Colors.red.shade900,
                             foregroundColor: Colors.white,
                           ),
                           child: const Text('Cancelar'),
