@@ -59,25 +59,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(
                       height: 16), // Espacio entre el título y las opciones
+                  _buildCompanyTile(context),
                   _buildListTile(
                     Icons.account_circle,
                     'Detalles de Cuenta',
                     'Ver la información básica de tu cuenta',
                     () => context.push('/userPanel'),
                   ),
-                  _buildListTile(
-                    Icons.email,
-                    'Modificar correo electrónico',
-                    'Cambia tu dirección de correo electrónico',
-                    () => context.push('/modifyEmail'),
-                  ),
-                  _buildListTile(
-                    Icons.lock,
-                    'Modificar contraseña',
-                    'Cambia tu contraseña actual',
-                    () => context.push('/modifyPassword'),
-                  ),
-                  _buildCompanyTile(context),
                   _buildListTile(
                     Icons.info,
                     'Detalles de la aplicación',
