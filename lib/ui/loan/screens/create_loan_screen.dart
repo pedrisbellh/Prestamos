@@ -294,7 +294,7 @@ class CreateLoanScreenState extends State<CreateLoanScreen> {
                               context.pop();
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
+                              backgroundColor: Colors.red.shade900,
                               foregroundColor: Colors.white,
                             ),
                             child: Text(context.l10n.cancel),
