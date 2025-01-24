@@ -17,10 +17,8 @@ import 'package:prestamos/ui/loan/screens/collect_screen.dart';
 import 'package:prestamos/ui/loan/screens/create_loan_screen.dart';
 import 'package:prestamos/ui/loan/screens/delays_screen.dart';
 import 'package:prestamos/ui/loan/screens/loans_screen.dart';
-import 'package:prestamos/ui/user/screens/modify_email_screen.dart';
 import 'package:prestamos/ui/loan/screens/print_screen.dart';
 import 'package:prestamos/ui/user/screens/app_details_screen.dart';
-import 'package:prestamos/ui/user/screens/modify_password_screen.dart';
 import 'package:prestamos/ui/user/screens/register_screen.dart';
 import 'package:prestamos/ui/user/screens/settings_screen.dart';
 import 'package:prestamos/ui/user/screens/user_panel_screen.dart';
@@ -107,14 +105,6 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
-    ),
-    GoRoute(
-      path: '/modifyEmail',
-      builder: (context, state) => const ModifyEmailScreen(),
-    ),
-    GoRoute(
-      path: '/modifyPassword',
-      builder: (context, state) => const ModifyPasswordScreen(),
     ),
     GoRoute(
       path: '/appDetails',
